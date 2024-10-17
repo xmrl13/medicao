@@ -1,0 +1,21 @@
+version: '3.8'
+
+services:
+
+  eureka:
+    build:
+      context: /home/marcelo/Documents/measurament_app/eureka/target
+      dockerfile: Dockerfile
+    ports:
+      - "8761:8761"
+    networks:
+      - my-network
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 256M
+
+networks:
+  my-network:
+    driver: bridge
