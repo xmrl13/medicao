@@ -13,13 +13,6 @@ public class UserResponseDTO {
     private String email;
     private Role role;
 
-    public UserResponseDTO(String name,String email, Role role) {
-        this.name = name;
-        this.email = email;
-        this.role = role;
-    }
-
-
     public UserResponseDTO() {
     }
 }

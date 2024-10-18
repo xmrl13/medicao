@@ -2,12 +2,11 @@ package controller;
 
 import dto.EmailDTO;
 import dto.UserRequestDTO;
-import dto.UserResponseDTO;
 import dto.UserUpdateDTO;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.*;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Mono;
 import service.UserService;
 
@@ -25,20 +24,12 @@ public class UserController {
     }
 
     @PostMapping("/deletebyemail")
-    public Mono<ResponseEntity<?>> deleteByEmail(@Valid @RequestBody EmailDTO emailDTO) {
-        return userService.deleteByEmail(emailDTO.getEmail())
-                .then(Mono.just(ResponseEntity.ok().build()));
+    public Mono<ResponseEntity<?>> deleteByEmail(@Valid @RequestBody EmailDTO emailDTO, @RequestHeader("Authorization") String token) {
+        return userService.deleteByEmail(emailDTO, token);
     }
 
     @PostMapping("/update")
     public Mono<ResponseEntity<?>> updateUser(@Valid @RequestBody UserUpdateDTO userUpdateDTO) {
         return userService.updateUser(userUpdateDTO);
-    }
-
-    @GetMapping("/read")
-    public Mono<ResponseEntity<UserResponseDTO>> find(@RequestParam("email") String email) {
-        EmailDTO emailDTO = new EmailDTO();
-        emailDTO.setEmail(email);
-        return userService.readByEmail(emailDTO);
     }
 }

@@ -1,10 +1,7 @@
 package client;
 
 import dto.UserResponseDTO;
-import model.User;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -13,7 +10,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
-import repository.UserCustomRepository;
 import repository.UserRepository;
 
 @Component
@@ -21,12 +17,15 @@ import repository.UserRepository;
 @RequestMapping("api/users")
 public class UserClient {
 
-    @Autowired
-    private UserRepository userRepository;
-    @Autowired
-    private WebClient.Builder webClientBuilder;
-    @Autowired
-    private UserCustomRepository userCustomRepository;
+    private final UserRepository userRepository;
+
+    private final WebClient webClient;
+
+    public UserClient(WebClient.Builder webClientBuilder, UserRepository userRepository) {
+        this.webClient = webClientBuilder.baseUrl("lb://filter").build();
+        this.userRepository = userRepository;
+    }
+
 
     @GetMapping("getuserbyemail/{email}")
     public Mono<UserResponseDTO> getUserByEmail(@PathVariable String email) {
@@ -36,6 +35,7 @@ public class UserClient {
                     userDetails.setEmail(user.getEmail());
                     userDetails.setName(user.getName());
                     userDetails.setRole(user.getRole());
+                    System.out.println(userDetails.getRole());
                     userDetails.setPassword(user.getPassword());
                     return userDetails;
                 })
@@ -43,12 +43,10 @@ public class UserClient {
     }
 
     public Mono<String> getUserRole(String token) {
-        String url = "http://auth-service/api/auth/get-role"; // URL do serviço registrado no Eureka
-
-        return webClientBuilder.build()
-                .method(HttpMethod.POST)
-                .uri(url)
-                .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
+        System.out.println(token);
+        return webClient.post()
+                .uri("/api/auth/get-role")
+                .header(HttpHeaders.AUTHORIZATION, token)
                 .accept(MediaType.APPLICATION_JSON)
                 .retrieve()
                 .bodyToMono(String.class)

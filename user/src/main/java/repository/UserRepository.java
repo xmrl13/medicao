@@ -13,6 +13,4 @@ public interface UserRepository extends R2dbcRepository<User, Long> {
 
     Mono<UserRequestDTO> getUserByEmail(String username);
 
-    Mono<Void> deleteByEmail(String email);
-
 }
