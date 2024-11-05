@@ -1,4 +1,4 @@
-package place.dto;
+package dto;
 
 import jakarta.validation.constraints.NotBlank;
 import lombok.Getter;

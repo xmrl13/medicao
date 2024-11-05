@@ -1,36 +1,131 @@
-package place.service;
+package service;
 
+import client.PlaceClient;
+import dto.PlaceDTO;
+import model.Place;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-import place.dto.PlaceDTO;
-import place.model.Place;
-import place.repository.PlaceRepository;
+import org.springframework.web.server.ResponseStatusException;
+import reactor.core.publisher.Mono;
+import repository.PlaceRepository;
 
-import java.util.Optional;
+import static org.springframework.http.HttpStatus.*;
 
 @Service
 public class PlaceService {
 
     private final PlaceRepository placeRepository;
 
+    @Autowired
+    private PlaceClient placeClient;
+
     public PlaceService(PlaceRepository placeRepository) {
         this.placeRepository = placeRepository;
     }
 
-    @Transactional
-    public void createPlace(PlaceDTO placeDTO) {
+    public Mono<ResponseEntity<String>> createPlace(PlaceDTO placeDTO, String token) {
+        String action = "createPlace";
 
-        placeRepository.findByNameAndProjectContract(placeDTO.getName(), placeDTO.getProjectContract()).ifPresent(place -> {
-            throw new IllegalArgumentException(String.format("A bacia: %s já existe para o contrato: %s", placeDTO.getName(), placeDTO.getProjectContract()));
-        });
+        return placeClient.hasPermission(token, action)
+                .flatMap(responseEntity -> {
+                    HttpStatus status = (HttpStatus) responseEntity.getStatusCode();
+                    String message = responseEntity.getBody();
 
-        Place placeSaved = new Place(placeDTO.getName(), placeDTO.getProjectContract());
-        placeRepository.save(placeSaved);
-        ResponseEntity.ok().build();
+                    if (status == NOT_FOUND) {
+                        return Mono.just(ResponseEntity.status(NOT_FOUND)
+                                .body("Ação não encontrada: " + action));
+                    } else if (status == FORBIDDEN) {
+                        return Mono.just(ResponseEntity.status(FORBIDDEN)
+                                .body("Sem permissão para realizar essa ação"));
+                    } else if (status != OK) {
+
+                        return Mono.just(ResponseEntity.status(INTERNAL_SERVER_ERROR)
+                                .body("Erro ao verificar permissão: " + message));
+                    }
+
+                    return placeRepository.findByNameAndProjectContract(placeDTO.getName(), placeDTO.getProjectContract())
+                            .flatMap(existingPlace ->
+                                    Mono.just(ResponseEntity.status(CONFLICT)
+                                            .body("A bacia: " + placeDTO.getName() + " já existe para o contrato: " + placeDTO.getProjectContract()))
+                            )
+                            .switchIfEmpty(
+                                    Mono.defer(() -> {
+                                        Place place = new Place();
+                                        place.setName(placeDTO.getName());
+                                        place.setProjectContract(placeDTO.getProjectContract());
+
+                                        return placeRepository.save(place)
+                                                .map(savedUser -> ResponseEntity.status(CREATED)
+                                                        .body("Bacia criada com sucesso"));
+                                    })
+                            );
+                });
     }
 
-    public Optional<Long> getIdByNameAndProjectContract(String name, String projectContract) {
-        return placeRepository.findPlaceIdByNameAndProjectContract(name, projectContract);
+
+    public Mono<ResponseEntity<String>> deletePlace(PlaceDTO placeDTO, String token) {
+        String action = "deletePlace";
+
+        return placeClient.hasPermission(token, action)
+                .flatMap(responseEntity -> {
+                    HttpStatus status = (HttpStatus) responseEntity.getStatusCode();
+                    String message = responseEntity.getBody();
+
+                    if (status == HttpStatus.NOT_FOUND) {
+                        return Mono.just(ResponseEntity.status(HttpStatus.NOT_FOUND)
+                                .body("Ação não encontrada: " + action));
+                    } else if (status == HttpStatus.FORBIDDEN) {
+                        return Mono.just(ResponseEntity.status(HttpStatus.FORBIDDEN)
+                                .body("Sem permissão para realizar essa ação"));
+                    } else if (status != HttpStatus.OK) {
+                        return Mono.just(ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                                .body("Erro ao verificar permissão: " + message));
+                    }
+
+                    // Prossegue com a exclusão se a permissão for concedida
+                    return placeRepository.findByNameAndProjectContract(placeDTO.getName(), placeDTO.getProjectContract())
+                            .flatMap(existingPlace ->
+                                    placeRepository.delete(existingPlace)
+                                            .then(Mono.just(ResponseEntity.status(HttpStatus.OK)
+                                                    .body("Bacia deletada com sucesso"))))
+                            .switchIfEmpty(Mono.just(ResponseEntity.status(HttpStatus.NOT_FOUND)
+                                    .body("Bacia não encontrada com o nome e contrato de projeto fornecidos")));
+                })
+                .onErrorResume(error -> Mono.just(ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                        .body("Erro ao processar a exclusão da bacia: " + error.getMessage())));
+    }
+
+    public Mono<ResponseEntity<String>> existsByNameAndProjectContract(PlaceDTO placeDTO, String token) {
+        String action = "existPlace";
+
+        return placeClient.hasPermission(token, action)
+                .flatMap(responseEntity -> {
+                    HttpStatus status = (HttpStatus) responseEntity.getStatusCode();
+                    String message = responseEntity.getBody();
+
+                    if (status == HttpStatus.NOT_FOUND) {
+                        return Mono.just(ResponseEntity.status(HttpStatus.NOT_FOUND)
+                                .body("Ação não encontrada: " + action));
+                    } else if (status == HttpStatus.FORBIDDEN) {
+                        return Mono.just(ResponseEntity.status(HttpStatus.FORBIDDEN)
+                                .body("Sem permissão para realizar essa ação"));
+                    } else if (status != HttpStatus.OK) {
+                        return Mono.just(ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                                .body("Erro ao verificar permissão: " + message));
+                    }
+
+                    return placeRepository.findByNameAndProjectContract(placeDTO.getName(), placeDTO.getProjectContract())
+                            .flatMap(existingPlace ->
+                                    Mono.just(ResponseEntity.status(HttpStatus.OK)
+                                            .body("Bacia encontrada")))
+                            .switchIfEmpty(
+                                    Mono.just(ResponseEntity.status(HttpStatus.NOT_FOUND)
+                                            .body("Bacia não encontrada")));
+                })
+                .onErrorResume(error -> Mono.just(ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                        .body("Erro ao verificar a existência da bacia: " + error.getMessage())));
     }
 }

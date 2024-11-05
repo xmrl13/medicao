@@ -1,16 +1,13 @@
 package client;
 
 import dto.UserResponseDTO;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
 import repository.UserRepository;
+import service.UserService;
 
 @Component
 @RestController
@@ -18,14 +15,13 @@ import repository.UserRepository;
 public class UserClient {
 
     private final UserRepository userRepository;
+    private final UserService userService;
 
-    private final WebClient webClient;
-
-    public UserClient(WebClient.Builder webClientBuilder, UserRepository userRepository) {
-        this.webClient = webClientBuilder.baseUrl("lb://filter").build();
+    public UserClient(WebClient.Builder webClientBuilder, UserRepository userRepository, UserService userService) {
+        WebClient webClient = webClientBuilder.baseUrl("lb://filter").build();
         this.userRepository = userRepository;
+        this.userService = userService;
     }
-
 
     @GetMapping("getuserbyemail/{email}")
     public Mono<UserResponseDTO> getUserByEmail(@PathVariable String email) {
@@ -42,14 +38,13 @@ public class UserClient {
                 .switchIfEmpty(Mono.error(new RuntimeException("Usuário não encontrado")));
     }
 
-    public Mono<String> getUserRole(String token) {
-        System.out.println(token);
-        return webClient.post()
-                .uri("/api/auth/get-role")
-                .header(HttpHeaders.AUTHORIZATION, token)
-                .accept(MediaType.APPLICATION_JSON)
-                .retrieve()
-                .bodyToMono(String.class)
-                .onErrorResume(e -> Mono.error(new RuntimeException("Erro ao buscar o role do usuário: " + e.getMessage(), e)));
+    @PostMapping("/has-permission/{token}/{action}")
+    public Mono<ResponseEntity<String>> hasPermission(@PathVariable String token, @PathVariable String action) {
+        return userService.hasPermission(token, action);
+    }
+
+    @GetMapping("/get")
+    public String get(){
+        return "Acertou";
     }
 }

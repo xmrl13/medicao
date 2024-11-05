@@ -3,44 +3,68 @@ package strategies;
 public class TechnicianRoleStrategy implements RoleStrategy {
 
     @Override
-    public boolean canUpdateUser() {
+    public boolean createUser() {
+        return false;
+    }
+
+    @Override
+    public boolean readUser() {
+        return false;
+    }
+
+    @Override
+    public boolean updateUser() {
         return true;
     }
 
     @Override
-    public boolean canCreateMeasurement() {
-        return false; // Technician cannot create measurements
-    }
-
-    @Override
-    public boolean canManageUsers() {
-        return false; // Technician cannot manage users
-    }
-
-    @Override
-    public boolean canDeleteWork() {
-        return false; // Technician cannot delete works
-    }
-
-    @Override
-    public boolean canViewItems() {
-        return true; // Technician can view items, but with some limitations
-    }
-
-    @Override
-    public boolean canCreateUser() {
+    public boolean deleteUser() {
         return false;
     }
 
     @Override
-    public boolean canDeleteUser() {
+    public boolean createItem() {
+        return true;
+    }
+
+    @Override
+    public boolean deleteItem() {
         return false;
     }
 
     @Override
-    public boolean canReadUser() {
+    public boolean existItem() {
+        return true;
+    }
+
+    @Override
+    public boolean createProject() {
         return false;
     }
 
+    @Override
+    public boolean deleteProject() {
+        return false;
+    }
+
+    @Override
+    public boolean existProject() {
+        return true;
+    }
+
+    @Override
+    public boolean createPlace() {
+        return true;
+    }
+
+    @Override
+    public boolean deletePlace() {
+        return true;
+    }
+
+    @Override
+    public boolean existPlace() {
+        return true;
+    }
 }
 

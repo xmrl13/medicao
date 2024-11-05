@@ -1,21 +1,13 @@
-package place.repository;
+package repository;
 
-import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.repository.query.Param;
+import jakarta.validation.constraints.NotBlank;
+import model.Place;
+import org.springframework.data.r2dbc.repository.R2dbcRepository;
 import org.springframework.stereotype.Repository;
-import place.model.Place;
-
-import java.util.Optional;
+import reactor.core.publisher.Mono;
 
 @Repository
-public interface PlaceRepository extends JpaRepository<Place, Long> {
+public interface PlaceRepository extends R2dbcRepository<Place, Long> {
 
-    Optional<Place> findByNameAndProjectContract(String name, String projectContract);
-
-    boolean existsByNameAndProjectContract(String name, String projectContract);
-
-    @Query(value = "select p.id from places p where p.name = :name and p.project_contract = :projectContract", nativeQuery = true)
-    Optional<Long> findPlaceIdByNameAndProjectContract(@Param("name") String name, @Param("projectContract") String projectContract);
-
+    Mono<Place> findByNameAndProjectContract(@NotBlank(message = "O nome nao pode ser vazio") String name, @NotBlank(message = "O contrato nao pode ser vazio") String projectContract);
 }

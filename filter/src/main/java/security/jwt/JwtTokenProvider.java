@@ -30,8 +30,7 @@ public class JwtTokenProvider {
         claims.put("role", role);
 
         Date now = new Date();
-        // 1h
-        long validityInMilliseconds = 3600000;
+        long validityInMilliseconds = 1000 * 60 * 60 * 24; // 24 horas
         Date validity = new Date(now.getTime() + validityInMilliseconds);
 
         return Jwts.builder()
@@ -42,35 +41,5 @@ public class JwtTokenProvider {
                 .compact();
     }
 
-    public boolean validateToken(String token) {
-        try {
-            Jwts.parserBuilder()
-                    .setSigningKey(key) // Ensure 'key' is a valid SecretKey instance
-                    .build()
-                    .parseClaimsJws(token);
-            return true;
-        } catch (Exception e) {
-
-            return false;
-        }
-    }
-
-    public String getUsernameFromToken(String token) {
-        Claims claims = Jwts.parserBuilder()
-                .setSigningKey(key)
-                .build()
-                .parseClaimsJws(token)
-                .getBody();
-        return claims.getSubject();
-    }
-
-    public String getRoleFromToken(String token) {
-        Claims claims = Jwts.parserBuilder()
-                .setSigningKey(key)
-                .build()
-                .parseClaimsJws(token)
-                .getBody();
-        return claims.get("role", String.class);
-    }
 
 }

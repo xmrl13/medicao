@@ -1,69 +1,80 @@
 package service;
 
+import client.ItemClient;
 import dto.ItemRequestDTO;
 import model.Item;
 import org.springframework.beans.factory.annotation.Autowired;
-import repository.ItemRepository;
-import jakarta.transaction.Transactional;
-import jakarta.validation.Valid;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
-
-import java.util.List;
-import java.util.Optional;
-import java.util.stream.Stream;
-
+import reactor.core.publisher.Mono;
+import repository.ItemRepository;
 
 @Service
 public class ItemService {
 
+    private final ItemRepository itemRepository;
+
     @Autowired
-    private ItemRepository itemRepository;
+    private ItemClient itemClient;
 
-    @Transactional
-    public void createItem(@Valid ItemRequestDTO itemRequestDTO) {
-
-        itemRepository.findByNameAndUnit(itemRequestDTO.getName(), itemRequestDTO.getUnit()).ifPresent(item -> {
-            throw new IllegalArgumentException("Já existe um item com o nome: " + itemRequestDTO.getName() + " e unidade de medida: " + itemRequestDTO.getUnit());
-        });
-
-        itemRepository.save(new Item(itemRequestDTO.getName(), itemRequestDTO.getUnit()));
-        ResponseEntity.ok().build();
+    public ItemService(ItemRepository itemRepository) {
+        this.itemRepository = itemRepository;
     }
 
+    public Mono<ResponseEntity<?>> createItem(ItemRequestDTO itemRequestDTO, String token) {
+        String action = "createItem";
 
-    private void saveInBatches(List<Item> itens) {
-        Stream.iterate(0, i -> i + 5)
-                .limit((itens.size() + 5 - 1) / 5)
-                .forEach(i -> {
-                    List<Item> bloco = itens.subList(i, Math.min(i + 5, itens.size()));
-                    itemRepository.saveAll(bloco);
+        return itemClient.hasPermission(token, action)
+                .flatMap(hasPermission -> {
+                    if (hasPermission == null) {
+                        return Mono.just(ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                                .body("Permissão não existente: " + action));
+                    }
+                    if (!hasPermission) {
+                        return Mono.just(ResponseEntity.status(HttpStatus.FORBIDDEN)
+                                .body("Sem permissão"));
+                    }
+                    return itemRepository.findByNameAndUnit(itemRequestDTO.getName(), itemRequestDTO.getUnit())
+                            .flatMap(existingItem ->
+                                    Mono.just(ResponseEntity.status(HttpStatus.CONFLICT)
+                                            .body("Item já cadastrado")))
+                            .switchIfEmpty(
+                                    Mono.defer(() -> {
+                                        Item item = new Item();
+                                        item.setName(itemRequestDTO.getName());
+                                        item.setUnit(itemRequestDTO.getUnit());
+                                        return itemRepository.save(item)
+                                                .map(savedItem -> ResponseEntity.status(HttpStatus.CREATED)
+                                                        .body("Item criado com sucesso"));
+                                    })
+                            );
                 });
     }
 
 
-/*
-    @Transactional
-    public ItemDTO updateItem(ItemDTO itemDTO) {
+    public Mono<ResponseEntity<?>> deleteItem(ItemRequestDTO itemRequestDTO, String token) {
 
-        Item existingItem = itemRepository.findByNameAndUnit(itemDTO.getName(), itemDTO.getUnit())
-                .orElseThrow(() -> new IllegalArgumentException("Item não encontrado"));
+        return itemClient.hasPermission(token, "deleteUser")
+                .flatMap(hasPermission -> {
+                    if (!hasPermission) {
+                        return Mono.just(ResponseEntity.status(HttpStatus.FORBIDDEN).body("Sem permissão"));
+                    }
 
-        existingItem.setUnit(itemDTO.getUnit());
-        existingItem.setName(itemDTO.getName());
-
-        itemRepository.save(existingItem);
-
-        return new ItemDTO(Long 1,existingItem.getName(), existingItem.getUnit());
-    }
-*/
-
-    public boolean existsById(Long id) {
-
-        return itemRepository.existsById(id);
+                    return itemRepository.findByNameAndUnit(itemRequestDTO.getName(), itemRequestDTO.getUnit())
+                            .flatMap(existingItem ->
+                                    itemRepository.delete(existingItem)
+                                            .then(Mono.just(ResponseEntity.status(HttpStatus.NO_CONTENT).body("Deletado com sucesso")))
+                            )
+                            .switchIfEmpty(Mono.just(ResponseEntity.status(HttpStatus.NOT_FOUND).body("Item não encontrado")));
+                });
     }
 
-    public Optional<Long> getIdByNameAndUnit(String name, String unit) {
-        return itemRepository.findIdByNameAndUnit(name, unit);
+    public Mono<ResponseEntity<Object>> existsByNameAndUnit(ItemRequestDTO itemRequestDTO) {
+        return itemRepository.findByNameAndUnit(itemRequestDTO.getName(), itemRequestDTO.getUnit())
+                .flatMap(existingItem ->
+                        Mono.just(ResponseEntity.status(HttpStatus.OK)
+                                .body((Object) "Item já cadastrado")))
+                .switchIfEmpty(Mono.just(ResponseEntity.status(HttpStatus.BAD_REQUEST).body(("Item nao encontrado"))));
     }
 }

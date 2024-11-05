@@ -19,13 +19,13 @@ public class UserController {
     private UserService userService;
 
     @PostMapping("/create")
-    public Mono<ResponseEntity<?>> createUser(@RequestBody UserRequestDTO userRequestDTO, @RequestHeader("Authorization") String token) {
+    public Mono<ResponseEntity<String>> createUser(@RequestBody UserRequestDTO userRequestDTO, @RequestHeader("Authorization") String token) {
         return userService.createUser(userRequestDTO, token);
     }
 
-    @PostMapping("/deletebyemail")
-    public Mono<ResponseEntity<?>> deleteByEmail(@Valid @RequestBody EmailDTO emailDTO, @RequestHeader("Authorization") String token) {
-        return userService.deleteByEmail(emailDTO, token);
+    @PostMapping("/delete")
+    public Mono<ResponseEntity<String>> deleteByEmail(@Valid @RequestBody EmailDTO emailDTO, @RequestHeader("Authorization") String token) {
+        return userService.deleteUser(emailDTO, token);
     }
 
     @PostMapping("/update")

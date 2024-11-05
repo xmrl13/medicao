@@ -3,43 +3,67 @@ package strategies;
 public class AdminRoleStrategy implements RoleStrategy {
 
     @Override
-    public boolean canUpdateUser() {
+    public boolean createUser() {
         return true;
     }
 
     @Override
-    public boolean canCreateMeasurement() {
+    public boolean readUser() {
         return true;
     }
 
     @Override
-    public boolean canManageUsers() {
+    public boolean updateUser() {
         return true;
     }
 
     @Override
-    public boolean canDeleteWork() {
+    public boolean deleteUser() {
         return true;
     }
 
     @Override
-    public boolean canViewItems() {
+    public boolean createItem() {
         return true;
     }
 
     @Override
-    public boolean canCreateUser() {
+    public boolean deleteItem() {
         return true;
     }
 
     @Override
-    public boolean canDeleteUser() {
+    public boolean existItem() {
         return true;
     }
 
     @Override
-    public boolean canReadUser() {
+    public boolean createProject() {
         return true;
     }
 
+    @Override
+    public boolean deleteProject() {
+        return true;
+    }
+
+    @Override
+    public boolean existProject() {
+        return true;
+    }
+
+    @Override
+    public boolean createPlace() {
+        return true;
+    }
+
+    @Override
+    public boolean deletePlace() {
+        return true;
+    }
+
+    @Override
+    public boolean existPlace() {
+        return true;
+    }
 }

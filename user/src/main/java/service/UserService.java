@@ -1,48 +1,106 @@
 package service;
 
-import client.UserClient;
 import dto.EmailDTO;
 import dto.UserRequestDTO;
 import dto.UserUpdateDTO;
 import enums.Role;
+import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.security.Keys;
+import jakarta.annotation.PostConstruct;
 import jakarta.validation.Valid;
 import model.User;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
-import reactor.core.scheduler.Schedulers;
 import repository.UserRepository;
 
 import java.lang.reflect.Method;
+import java.security.Key;
+import java.util.Base64;
 
 @Service
 public class UserService {
 
-    private final UserClient userClient;
+    private Key key;
+
+    @Value("${jwt.secret}")
+    private String secret;
+
+    @PostConstruct
+    public void init() {
+        byte[] secretBytes = Base64.getDecoder().decode(secret);
+        this.key = Keys.hmacShaKeyFor(secretBytes);
+    }
 
     private final UserRepository userRepository;
 
     PasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
 
-    public UserService(UserClient userClient, UserRepository userRepository) {
-        this.userClient = userClient;
+    public UserService(UserRepository userRepository) {
         this.userRepository = userRepository;
     }
 
-    public Mono<ResponseEntity<?>> createUser(UserRequestDTO userRequestDTO, String token) {
+    public Mono<ResponseEntity<String>> deleteUser(EmailDTO emailDTO, String token) {
+        String action = "deleteUser";
 
-        return hasPermission(token, "canCreateUser")
-                .flatMap(hasPermission -> {
-                    if (!hasPermission) {
-                        return Mono.just(ResponseEntity.status(HttpStatus.FORBIDDEN).body((Object) "Sem permissão"));
+        return hasPermission(token, action)
+                .flatMap(responseEntity -> {
+                    HttpStatus status = (HttpStatus) responseEntity.getStatusCode();
+                    String message = responseEntity.getBody();
+
+                    if (status == HttpStatus.NOT_FOUND) {
+                        return Mono.just(ResponseEntity.status(HttpStatus.NOT_FOUND)
+                                .body("Ação não encontrada: " + action));
+                    } else if (status == HttpStatus.FORBIDDEN) {
+                        return Mono.just(ResponseEntity.status(HttpStatus.FORBIDDEN)
+                                .body("Sem permissão para deletar usuário"));
+                    } else if (status != HttpStatus.OK) {
+                        return Mono.just(ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                                .body("Erro ao verificar permissão: " + message));
                     }
 
-                    return Mono.defer(() -> userRepository.findByEmail(userRequestDTO.getEmail())
-                            .publishOn(Schedulers.boundedElastic())
-                            .flatMap(existingUser -> Mono.just(ResponseEntity.status(HttpStatus.CONFLICT).body((Object) "Usuário com esse e-mail já existe")))
+                    return userRepository.findByEmail(emailDTO.getEmail())
+                            .flatMap(existingUser ->
+                                    userRepository.delete(existingUser)
+                                            .then(Mono.just(ResponseEntity.status(HttpStatus.OK)
+                                                    .body("Usuário deletado com sucesso"))))
+                            .switchIfEmpty(Mono.just(ResponseEntity.status(HttpStatus.NOT_FOUND)
+                                    .body("Usuário não encontrado: " + emailDTO.getEmail())));
+                })
+                .onErrorResume(error -> Mono.just(ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                        .body("Erro ao processar a exclusão do usuário: " + error.getMessage())));
+    }
+
+    public Mono<ResponseEntity<String>> createUser(UserRequestDTO userRequestDTO, String token) {
+        String action = "createUser";
+
+        return hasPermission(token, action)
+                .flatMap(responseEntity -> {
+                    HttpStatus status = (HttpStatus) responseEntity.getStatusCode();
+                    String message = responseEntity.getBody();
+
+                    if (status == HttpStatus.NOT_FOUND) {
+                        return Mono.just(ResponseEntity.status(HttpStatus.NOT_FOUND)
+                                .body("Ação não encontrada: " + action));
+                    } else if (status == HttpStatus.FORBIDDEN) {
+                        return Mono.just(ResponseEntity.status(HttpStatus.FORBIDDEN)
+                                .body("Sem permissão para criar usuário"));
+                    } else if (status != HttpStatus.OK) {
+
+                        return Mono.just(ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                                .body("Erro ao verificar permissão: " + message));
+                    }
+
+                    return userRepository.findByEmail(userRequestDTO.getEmail())
+                            .flatMap(existingUser ->
+                                    Mono.just(ResponseEntity.status(HttpStatus.CONFLICT)
+                                            .body("Usuário com esse e-mail já existe"))
+                            )
                             .switchIfEmpty(
                                     Mono.defer(() -> {
                                         User user = new User();
@@ -56,37 +114,16 @@ public class UserService {
                                         user.setSecretPhrase(encodedSecretPhrase);
 
                                         return userRepository.save(user)
-                                                .publishOn(Schedulers.boundedElastic()) // Movemos a operação de salvar no banco de dados para o boundedElastic
-                                                .map(savedUser -> ResponseEntity.status(HttpStatus.CREATED).build());
+                                                .map(savedUser -> ResponseEntity.status(HttpStatus.CREATED)
+                                                        .body("Usuário criado com sucesso"));
                                     })
-                            )
-                    );
-                });
-    }
-
-
-    public Mono<ResponseEntity<?>> deleteByEmail(EmailDTO emailDTO, String token) {
-
-        return hasPermission(token, "canDeleteUser")
-                .flatMap(hasPermission -> {
-                    if (!hasPermission) {
-                        return Mono.just(ResponseEntity.status(HttpStatus.FORBIDDEN).body((Object) "Sem permissão"));
-                    }
-
-                    return Mono.defer(() -> userRepository.findByEmail(emailDTO.getEmail())
-                            .publishOn(Schedulers.boundedElastic()) // Usando boundedElastic para busca no banco
-                            .flatMap(existingUser -> userRepository.delete(existingUser)
-                                    .publishOn(Schedulers.boundedElastic()) // Usando boundedElastic para a exclusão
-                                    .then(Mono.just(ResponseEntity.status(HttpStatus.NO_CONTENT).body((Object) "Deletado com sucesso"))))
-                            .switchIfEmpty(Mono.just(ResponseEntity.status(HttpStatus.NOT_FOUND).body("Usuário não encontrado"))) // 404 Not Found
-                    );
+                            );
                 });
     }
 
     public Mono<ResponseEntity<?>> updateUser(@Valid UserUpdateDTO userUpdateDTO) {
 
-        return Mono.defer(() -> userRepository.findByEmail(userUpdateDTO.getOldEmail())
-                .publishOn(Schedulers.boundedElastic()) // Mover busca no banco para boundedElastic
+        return userRepository.findByEmail(userUpdateDTO.getOldEmail())
                 .flatMap(user -> {
                     if (passwordEncoder.matches(userUpdateDTO.getSecretPhrase(), user.getSecretPhrase())) {
                         if (userUpdateDTO.getName() != null) {
@@ -98,13 +135,13 @@ public class UserService {
                                         .body("O novo e-mail deve ser diferente do e-mail já cadastrado."));
                             }
                             return userRepository.findByEmail(userUpdateDTO.getNewEmail())
-                                    .publishOn(Schedulers.boundedElastic()) // Mover nova busca no banco para boundedElastic
-                                    .flatMap(existingUser -> Mono.just(ResponseEntity.status(HttpStatus.CONFLICT)
-                                            .body("Email já cadastrado")))
+                                    .flatMap(existingUser ->
+                                            Mono.just(ResponseEntity.status(HttpStatus.CONFLICT)
+                                                    .body("Email já cadastrado"))
+                                    )
                                     .switchIfEmpty(Mono.defer(() -> {
                                         user.setEmail(userUpdateDTO.getNewEmail());
                                         return saveUser(user)
-                                                .publishOn(Schedulers.boundedElastic()) // Mover operação de salvar no banco
                                                 .map(savedUser -> ResponseEntity.status(HttpStatus.OK).build());
                                     }));
                         }
@@ -118,7 +155,6 @@ public class UserService {
                             }
                         }
                         return saveUser(user)
-                                .publishOn(Schedulers.boundedElastic()) // Mover operação de salvar no banco
                                 .map(savedUser -> ResponseEntity.status(HttpStatus.OK).build());
                     } else {
                         return Mono.just(ResponseEntity.status(HttpStatus.UNAUTHORIZED)
@@ -126,24 +162,63 @@ public class UserService {
                     }
                 })
                 .switchIfEmpty(Mono.just(ResponseEntity.status(HttpStatus.NOT_FOUND)
-                        .body("Pessoa não encontrada com o e-mail: " + userUpdateDTO.getOldEmail())))
-        );
+                        .body("Pessoa não encontrada com o e-mail: " + userUpdateDTO.getOldEmail())));
+    }
+
+    public Mono<ResponseEntity<String>> hasPermission(String token, String action) {
+        if (token.startsWith("Bearer ")) {
+            token = token.replace("Bearer ", "");
+        }
+
+        return getRoleFromToken(token)
+                .flatMap(roleName -> {
+
+                    Role role;
+                    try {
+                        role = Role.valueOf(roleName);
+                    } catch (IllegalArgumentException e) {
+                        return Mono.just(ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                                .body("Role '" + roleName + "' não é válida"));
+                    }
+
+                    try {
+                        Method method = Role.class.getMethod(action);
+                        boolean hasPermission = (boolean) method.invoke(role);
+                        if (hasPermission) {
+                            return Mono.just(ResponseEntity.ok("Permissão concedida"));
+                        } else {
+                            return Mono.just(ResponseEntity.status(HttpStatus.FORBIDDEN)
+                                    .body("Sem permissão para a ação: " + action));
+                        }
+                    } catch (NoSuchMethodException e) {
+                        return Mono.just(ResponseEntity.status(HttpStatus.NOT_FOUND)
+                                .body("A ação '" + action + "' não existe para a role " + roleName));
+                    } catch (Exception e) {
+
+                        return Mono.just(ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                                .body("Erro ao verificar permissão: " + e.getMessage()));
+                    }
+                })
+                .switchIfEmpty(Mono.just(ResponseEntity.status(HttpStatus.FORBIDDEN)
+                        .body("Sem permissão: role não encontrada")));
     }
 
 
-    public Mono<Boolean> hasPermission(String token, String action) {
-        return userClient.getUserRole(token)
-                .flatMap(roleName -> {
-                    try {
-                        Role role = Role.valueOf(roleName);
-                        Method method = Role.class.getMethod(action);
-                        return Mono.just((boolean) method.invoke(role));
-                    } catch (NoSuchMethodException e) {
-                        return Mono.error(new IllegalArgumentException("A ação '" + action + "' não existe."));
-                    } catch (Exception e) {
-                        return Mono.error(new RuntimeException("Erro ao verificar permissão para o usuário " + roleName + ": " + e.getMessage(), e));
-                    }
-                });
+    public Mono<String> getRoleFromToken(String token) {
+        return Mono.defer(() -> {
+            try {
+                Claims claims = Jwts.parserBuilder()
+                        .setSigningKey(key)  // Usar a chave apropriada
+                        .build()
+                        .parseClaimsJws(token)
+                        .getBody();
+
+                String role = claims.get("role", String.class);
+                return Mono.just(role);
+            } catch (Exception e) {
+                return Mono.error(e);
+            }
+        });
     }
 
     private Mono<ResponseEntity<?>> saveUser(User user) {

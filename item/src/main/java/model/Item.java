@@ -1,35 +1,50 @@
 package model;
 
-import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import lombok.Getter;
 import lombok.Setter;
+import org.springframework.data.annotation.Id;
+import org.springframework.data.relational.core.mapping.Column;
+import org.springframework.data.relational.core.mapping.Table;
+
+import java.util.Objects;
+
 
 @Getter
-@Entity
-@Table(name = "itens", uniqueConstraints = {@UniqueConstraint(columnNames = {"name", "unit"})}
-, indexes = {@Index(name = "idx_name_unit", columnList = "name, unit")})
+@Table("itens")
 public class Item {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @Setter
-    @Column(name = "name", nullable = false)
     @NotBlank
+    @Column("name")
     private String name;
 
     @Setter
-    @Column(name = "unit", nullable = false)
     @NotBlank
+    @Column("unit")
     private String unit;
 
     public Item() {
     }
 
-    public Item(String name, String unit) {
+    public Item(Long Id, String name, String unit) {
         this.name = name;
         this.unit = unit;
+    }
+
+    @Override
+    public int hashCode() {
+        return super.hashCode();
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Item item = (Item) o;
+        return Objects.equals(id, item.id) && Objects.equals(name, item.name) && Objects.equals(unit, item.unit);
     }
 }

@@ -2,18 +2,17 @@ package repository;
 
 
 import model.Item;
-import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.repository.query.Param;
+import org.springframework.data.r2dbc.repository.Query;
+import org.springframework.data.r2dbc.repository.R2dbcRepository;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Repository;
+import reactor.core.publisher.Mono;
 
 import java.util.Optional;
 
 @Repository
-public interface ItemRepository extends JpaRepository<Item, Long> {
+public interface ItemRepository extends R2dbcRepository<Item, Long> {
 
-    Optional<Item> findByNameAndUnit(String nome, String unidadeMedida);
+    Mono<Item> findByNameAndUnit(String name, String unit);
 
-    @Query(value = "select i.id from itens i where i.name = :name and i.unit = :unit",nativeQuery = true)
-    Optional<Long> findIdByNameAndUnit(@Param("name") String name, @Param("unit") String unit);
 }

@@ -1,28 +1,24 @@
-package place.model;
+package model;
 
-import jakarta.persistence.*;
-import jakarta.validation.constraints.NotBlank;
 import lombok.Getter;
 import lombok.Setter;
+import org.springframework.data.annotation.Id;
+import org.springframework.data.relational.core.mapping.Column;
+import org.springframework.data.relational.core.mapping.Table;
 
 @Getter
-@Entity
-@Table(name = "places",schema = "app", uniqueConstraints = {@UniqueConstraint(columnNames = {"name", "project_contract"})}
-, indexes = @Index(name = "idx_name_project_contrac", columnList = "name, project_contract"))
+@Table("places")
 public class Place {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @Setter
-    @Column(name = "name", nullable = false)
-    @NotBlank
+    @Column("name")
     private String name;
 
     @Setter
-    @Column(name = "project_contract", nullable = false)
-    @NotBlank
+    @Column("project_contract")
     private String projectContract;
 
     public Place() {

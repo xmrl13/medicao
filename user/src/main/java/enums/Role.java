@@ -19,36 +19,60 @@ public enum Role {
         return strategy;
     }
 
-    public boolean canUpdateUser() {
-        return strategy.canUpdateUser();
+    public boolean createUser() {
+        return strategy.createUser();
     }
 
-    public boolean canCreateMeasurement() {
-        return strategy.canCreateMeasurement();
+    public boolean readUser() {
+        return strategy.readUser();
     }
 
-    public boolean canManageUsers() {
-        return strategy.canManageUsers();
+    public boolean updateUser() {
+        return strategy.updateUser();
     }
 
-    public boolean canDeleteWork() {
-        return strategy.canDeleteWork();
+    public boolean deleteUser() {
+        return strategy.deleteUser();
     }
 
-    public boolean canViewItems() {
-        return strategy.canViewItems();
+    public boolean createItem() {
+        return strategy.createItem();
     }
 
-    public boolean canCreateUser() {
-        return strategy.canCreateUser();
+
+    public boolean deleteItem() {
+        return strategy.deleteItem();
     }
 
-    public boolean canDeleteUser() {
-        return strategy.canDeleteUser();
+    public boolean existItem() {
+        return strategy.existItem();
     }
 
-    public boolean canReadUser() {
-        return strategy.canReadUser();
+    public boolean createProject(){
+        return strategy.createProject();
     }
+
+    public boolean deleteProject() {
+        return strategy.deleteProject();
+    }
+
+    public boolean existProject() {
+        return strategy.existProject();
+    }
+
+    public boolean createPlace(){
+        return strategy.createPlace();
+    }
+
+    public boolean deletePlace(){
+        return strategy.deletePlace();
+    }
+
+    public boolean existPlace(){
+        return strategy.existPlace();
+    }
+
+
+
 
 }

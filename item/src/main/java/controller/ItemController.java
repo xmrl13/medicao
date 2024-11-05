@@ -1,56 +1,37 @@
 package controller;
 
 import dto.ItemRequestDTO;
-import service.ItemService;
-import jakarta.validation.Valid;
-import org.apache.coyote.BadRequestException;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
-import java.net.URLDecoder;
-import java.nio.charset.StandardCharsets;
-import java.util.Optional;
+import reactor.core.publisher.Mono;
+import service.ItemService;
 
 @RestController
 @RequestMapping("api/itens")
 public class ItemController {
 
-    @Autowired
-    private ItemService itemService;
+    private final ItemService itemService;
+
+    public ItemController(ItemService itemService) {
+        this.itemService = itemService;
+    }
 
     @PostMapping("/create/one")
-    public ResponseEntity<ItemRequestDTO> createOne(@Valid @RequestBody ItemRequestDTO itemRequestDTO) {
-
-        itemService.createItem(itemRequestDTO);
-        return ResponseEntity.ok().body(itemRequestDTO);
+    public Mono<ResponseEntity<?>> createOne(@RequestBody ItemRequestDTO itemRequestDTO, @RequestHeader("Authorization") String token) {
+        return itemService.createItem(itemRequestDTO, token);
     }
 
-    @GetMapping("/getidbynameandunit/{name}/{unit}")
-    public ResponseEntity<?> getIdByNameAndUnit(@PathVariable String name, @PathVariable String unit) {
-
-        String decodedName = URLDecoder.decode(name, StandardCharsets.UTF_8);
-        String decodedUnit = URLDecoder.decode(unit, StandardCharsets.UTF_8);
-
-        Optional<Long> id = itemService.getIdByNameAndUnit(decodedName, decodedUnit);
-        System.out.println("Passei aqui");
-        return ResponseEntity.ok(id);
+    @PostMapping("/delete")
+    public Mono<ResponseEntity<?>> deleteItem(@RequestBody ItemRequestDTO itemRequestDTO, @RequestHeader("Authorization") String token) {
+        return itemService.deleteItem(itemRequestDTO, token);
     }
 
-    @GetMapping("/existsbyid")
-    public boolean existsById(@PathVariable Long id) {
-        return itemService.existsById(id);
-    }
 
     @ExceptionHandler(IllegalArgumentException.class)
     public ResponseEntity<String> handleIllegalArgumentException(IllegalArgumentException ex) {
         return ResponseEntity.badRequest().body(ex.getMessage());
     }
 
-    @ExceptionHandler(BadRequestException.class)
-    public ResponseEntity<String> BadRequestException(BadRequestException ex) {
-        return ResponseEntity.badRequest().body(ex.getMessage());
-    }
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<String> Exception(Exception ex) {

@@ -28,7 +28,6 @@ public class AuthController {
     @PostMapping("/get-role")
     public String getRole(@RequestHeader("Authorization") String token) {
 
-        System.out.println(token);
         if (token.startsWith("Bearer ")) {
             token = token.substring(7);
         }
