@@ -30,14 +30,9 @@ public class Item {
     public Item() {
     }
 
-    public Item(Long Id, String name, String unit) {
+    public Item(String name, String unit) {
         this.name = name;
         this.unit = unit;
-    }
-
-    @Override
-    public int hashCode() {
-        return super.hashCode();
     }
 
     @Override
@@ -45,6 +40,13 @@ public class Item {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         Item item = (Item) o;
-        return Objects.equals(id, item.id) && Objects.equals(name, item.name) && Objects.equals(unit, item.unit);
+        return Objects.equals(name, item.name) && Objects.equals(unit, item.unit);
     }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(name, unit);
+    }
+
+
 }
