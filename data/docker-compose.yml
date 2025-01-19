@@ -1,0 +1,98 @@
+version: '3.8'
+
+services:
+
+  itemdata:
+    image: postgres:17
+    container_name: itemdata
+    ports:
+      - "5433:5432"
+    environment:
+      POSTGRES_DB: itensdb
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: AnosMaisTarde
+    volumes:
+      - itemdata_data:/var/lib/postgresql/data
+
+  userdata:
+    image: postgres:17
+    container_name: userdata
+    ports:
+      - "5434:5432"
+    environment:
+      POSTGRES_DB: usersdb
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: AnosMaisTarde
+    volumes:
+      - userdata_data:/var/lib/postgresql/data
+
+  projectdata:
+    image: postgres:17
+    container_name: projectdata
+    ports:
+      - "5435:5432"
+    environment:
+      POSTGRES_DB: projectsdb
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: AnosMaisTarde
+    volumes:
+      - projectdata_data:/var/lib/postgresql/data
+
+  placedata:
+    image: postgres:17
+    container_name: placedata
+    ports:
+      - "5436:5432"
+    environment:
+      POSTGRES_DB: placesdb
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: AnosMaisTarde
+    volumes:
+      - placedata_data:/var/lib/postgresql/data
+
+  placeitemdata:
+    image: postgres:17
+    container_name: placeitemdata
+    ports:
+      - "5437:5432"
+    environment:
+      POSTGRES_DB: placeitensdb
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: AnosMaisTarde
+    volumes:
+      - placeitem_data:/var/lib/postgresql/data
+
+  measurement:
+    image: postgres:17
+    container_name: measurementsdata
+    ports:
+      - "5438:5432"
+    environment:
+      POSTGRES_DB: measurementsdb
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: AnosMaisTarde
+    volumes:
+      - measurement_data:/var/lib/postgresql/data
+
+  measurementplaceitemdata:
+    image: postgres:17
+    container_name: measurementsplaceitemdata
+    ports:
+      - "5439:5432"
+    environment:
+      POSTGRES_DB: measurementsplaceitemdb
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: AnosMaisTarde
+    volumes:
+      - measurementplaceitem_data:/var/lib/postgresql/data
+
+
+
+volumes:
+  itemdata_data:
+  userdata_data:
+  projectdata_data:
+  placedata_data:
+  placeitem_data:
+  measurement_data:
+  measurementplaceitem_data:
