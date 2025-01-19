@@ -17,15 +17,16 @@ import static org.springframework.http.HttpStatus.*;
 public class ItemService {
 
     private final ItemRepository itemRepository;
+    private final ItemClient itemClient;
 
-    @Autowired
-    private ItemClient itemClient;
 
-    public ItemService(ItemRepository itemRepository) {
+    public ItemService(ItemRepository itemRepository, ItemClient client) {
+        this.itemClient = client;
         this.itemRepository = itemRepository;
     }
 
     public Mono<ResponseEntity<String>> createItem(ItemDTO itemDTO, String token) {
+
         String action = "createItem";
 
         return itemClient.hasPermission(token, action)
