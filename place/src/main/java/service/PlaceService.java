@@ -2,9 +2,8 @@ package service;
 
 import client.PlaceClient;
 import dto.PlaceDTO;
-import md.place.PlaceRequestDTO;
+import dto.PlaceRequestDTO;
 import model.Place;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -17,12 +16,11 @@ import static org.springframework.http.HttpStatus.*;
 public class PlaceService {
 
     private final PlaceRepository placeRepository;
+    private final PlaceClient placeClient;
 
-    @Autowired
-    private PlaceClient placeClient;
-
-    public PlaceService(PlaceRepository placeRepository) {
+    public PlaceService(PlaceRepository placeRepository, PlaceClient placeClient) {
         this.placeRepository = placeRepository;
+        this.placeClient = placeClient;
     }
 
     public Mono<ResponseEntity<String>> createPlace(PlaceDTO placeDTO, String token) {
@@ -41,7 +39,7 @@ public class PlaceService {
                                 .body("Sem permissão para realizar essa ação"));
                     } else if (status != OK) {
 
-                        return Mono.just(ResponseEntity.status(INTERNAL_SERVER_ERROR)
+                        return Mono.just(ResponseEntity.status(FAILED_DEPENDENCY)
                                 .body("Erro ao verificar permissão: " + message));
                     }
 
@@ -80,7 +78,7 @@ public class PlaceService {
                         return Mono.just(ResponseEntity.status(HttpStatus.FORBIDDEN)
                                 .body("Sem permissão para realizar essa ação"));
                     } else if (status != HttpStatus.OK) {
-                        return Mono.just(ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                        return Mono.just(ResponseEntity.status(FAILED_DEPENDENCY)
                                 .body("Erro ao verificar permissão: " + message));
                     }
 
@@ -90,7 +88,7 @@ public class PlaceService {
                                     placeRepository.delete(existingPlace)
                                             .then(Mono.just(ResponseEntity.status(HttpStatus.OK)
                                                     .body("Bacia deletada com sucesso"))))
-                            .switchIfEmpty(Mono.just(ResponseEntity.status(HttpStatus.NOT_FOUND)
+                            .switchIfEmpty(Mono.just(ResponseEntity.status(NO_CONTENT)
                                     .body("Bacia não encontrada com o nome e contrato de projeto fornecidos")));
                 })
                 .onErrorResume(error -> Mono.just(ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
@@ -113,7 +111,7 @@ public class PlaceService {
                         return Mono.just(ResponseEntity.status(HttpStatus.FORBIDDEN)
                                 .body("Sem permissão para realizar essa ação"));
                     } else if (status != HttpStatus.OK) {
-                        return Mono.just(ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                        return Mono.just(ResponseEntity.status(FAILED_DEPENDENCY)
                                 .body("Erro ao verificar permissão: " + message));
                     }
 
@@ -122,7 +120,7 @@ public class PlaceService {
                                     Mono.just(ResponseEntity.status(OK)
                                             .body("Bacia encontrada")))
                             .switchIfEmpty(
-                                    Mono.just(ResponseEntity.status(NOT_FOUND)
+                                    Mono.just(ResponseEntity.status(NO_CONTENT)
                                             .body("Bacia não encontrada")));
                 })
                 .onErrorResume(error -> Mono.just(ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
