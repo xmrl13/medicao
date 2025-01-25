@@ -4,7 +4,6 @@ import client.MeasurementClient;
 import dto.MeasurementDTO;
 import dto.MeasurementRequestDTO;
 import model.Measurement;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -18,12 +17,12 @@ public class MeasurementService {
 
     private final MeasurementRepository measurementRepository;
 
-    public MeasurementService(MeasurementRepository measurementRepository) {
-        this.measurementRepository = measurementRepository;
-    }
+    private final MeasurementClient measurementClient;
 
-    @Autowired
-    private MeasurementClient measurementClient;
+    public MeasurementService(MeasurementRepository measurementRepository, MeasurementClient measurementClient) {
+        this.measurementRepository = measurementRepository;
+        this.measurementClient = measurementClient;
+    }
 
     public Mono<ResponseEntity<String>> createMeasurement(MeasurementDTO measurementDTO, String token) {
         String action = "createMeasurement";
@@ -40,7 +39,7 @@ public class MeasurementService {
                         return Mono.just(ResponseEntity.status(FORBIDDEN)
                                 .body("Sem permissão para realizar essa ação"));
                     } else if (status != OK) {
-                        return Mono.just(ResponseEntity.status(INTERNAL_SERVER_ERROR)
+                        return Mono.just(ResponseEntity.status(FAILED_DEPENDENCY)
                                 .body("Erro ao verificar permissão: " + message));
                     }
 
@@ -50,7 +49,7 @@ public class MeasurementService {
                                     return Mono.just(ResponseEntity.status(NOT_FOUND)
                                             .body("Projeto não encontrado para o contrato: " + measurementDTO.getProjectContract()));
                                 } else if (projectExistsResponse.getStatusCode() != OK) {
-                                    return Mono.just(ResponseEntity.status(INTERNAL_SERVER_ERROR)
+                                    return Mono.just(ResponseEntity.status(FAILED_DEPENDENCY)
                                             .body("Erro ao verificar existência do projeto"));
                                 }
 
@@ -91,7 +90,7 @@ public class MeasurementService {
                         return Mono.just(ResponseEntity.status(FORBIDDEN)
                                 .body("Sem permissão para realizar essa ação"));
                     } else if (status != OK) {
-                        return Mono.just(ResponseEntity.status(INTERNAL_SERVER_ERROR)
+                        return Mono.just(ResponseEntity.status(FAILED_DEPENDENCY)
                                 .body("Erro ao verificar permissão: " + message));
                     }
 
@@ -100,7 +99,7 @@ public class MeasurementService {
                                     measurementRepository.delete((Measurement) existingMeasurement)
                                             .then(Mono.just(ResponseEntity.status(OK)
                                                     .body("Medição deletada com sucesso"))))
-                            .switchIfEmpty(Mono.just(ResponseEntity.status(NOT_FOUND)
+                            .switchIfEmpty(Mono.just(ResponseEntity.status(NO_CONTENT)
                                     .body("Medição não encontrada com o nome e contrato fornecidos")));
                 })
                 .onErrorResume(error -> Mono.just(ResponseEntity.status(INTERNAL_SERVER_ERROR)
@@ -123,7 +122,7 @@ public class MeasurementService {
                         return Mono.just(ResponseEntity.status(FORBIDDEN)
                                 .body("Sem permissão para realizar essa ação"));
                     } else if (status != OK) {
-                        return Mono.just(ResponseEntity.status(INTERNAL_SERVER_ERROR)
+                        return Mono.just(ResponseEntity.status(FAILED_DEPENDENCY)
                                 .body("Erro ao verificar permissão: " + message));
                     }
 
@@ -134,7 +133,7 @@ public class MeasurementService {
                                     return Mono.just(ResponseEntity.status(NOT_FOUND)
                                             .body("Projeto não encontrado para o contrato: " + measurementRequestDTO.getProjectContract()));
                                 } else if (projectExistsResponse.getStatusCode() != OK) {
-                                    return Mono.just(ResponseEntity.status(INTERNAL_SERVER_ERROR)
+                                    return Mono.just(ResponseEntity.status(FAILED_DEPENDENCY)
                                             .body("Erro ao verificar existência do projeto"));
                                 }
 
@@ -144,7 +143,7 @@ public class MeasurementService {
                                                 Mono.just(ResponseEntity.status(OK)
                                                         .body("Medição encontrada")))
                                         .switchIfEmpty(
-                                                Mono.just(ResponseEntity.status(NOT_FOUND)
+                                                Mono.just(ResponseEntity.status(NO_CONTENT)
                                                         .body("Medição não encontrada")));
                             });
                 })

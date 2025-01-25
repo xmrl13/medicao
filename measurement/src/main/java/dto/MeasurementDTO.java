@@ -35,4 +35,7 @@ public class MeasurementDTO {
 
     public MeasurementDTO() {
     }
+
+    public MeasurementDTO(String project1, String s, Object endDate, Object yearMonth) {
+    }
 }

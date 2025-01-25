@@ -40,7 +40,7 @@ class PlaceServiceTest {
     @Test
     @DisplayName("Deve criar Place quando há permissão e não existe registro anterior")
     void testCreatePlace_ShouldReturnCreated() {
-        // Arrange
+
         PlaceDTO placeDTO = new PlaceDTO("Test Place", "Test Contract");
 
         when(placeClient.hasPermission(any(), eq("createPlace")))
@@ -52,7 +52,6 @@ class PlaceServiceTest {
         when(placeRepository.save(any(Place.class)))
                 .thenReturn(Mono.just(new Place("Test Place", "Test Contract")));
 
-        // Act & Assert
         StepVerifier.create(placeService.createPlace(placeDTO, "test-token"))
                 .assertNext(response -> {
                     assertEquals(CREATED, response.getStatusCode());
@@ -64,7 +63,7 @@ class PlaceServiceTest {
     @Test
     @DisplayName("Deve retornar CONFLICT quando o Place já existe")
     void testCreatePlace_ShouldReturnConflictWhenAlreadyExists() {
-        // Arrange
+
         PlaceDTO placeDTO = new PlaceDTO("Existing Place", "Existing Contract");
 
         when(placeClient.hasPermission(any(), eq("createPlace")))
@@ -73,7 +72,6 @@ class PlaceServiceTest {
         when(placeRepository.findByNameAndProjectContract(placeDTO.getName(), placeDTO.getProjectContract()))
                 .thenReturn(Mono.just(new Place("Existing Place", "Existing Contract")));
 
-        // Act & Assert
         StepVerifier.create(placeService.createPlace(placeDTO, "test-token"))
                 .assertNext(response -> {
                     assertEquals(CONFLICT, response.getStatusCode());
@@ -85,13 +83,12 @@ class PlaceServiceTest {
     @Test
     @DisplayName("Deve retornar FORBIDDEN quando não há permissão")
     void testCreatePlace_ShouldReturnForbidden() {
-        // Arrange
+
         PlaceDTO placeDTO = new PlaceDTO("New Place", "New Contract");
 
         when(placeClient.hasPermission(any(), eq("createPlace")))
                 .thenReturn(Mono.just(ResponseEntity.status(FORBIDDEN).body("Sem permissão")));
 
-        // Act & Assert
         StepVerifier.create(placeService.createPlace(placeDTO, "test-token"))
                 .assertNext(response -> {
                     assertEquals(FORBIDDEN, response.getStatusCode());
@@ -103,7 +100,7 @@ class PlaceServiceTest {
     @Test
     @DisplayName("Deve retornar NO_CONTENT quando o Place não existir no delete")
     void testDeletePlace_ShouldReturnNoContent() {
-        // Arrange
+
         PlaceDTO placeDTO = new PlaceDTO("Nonexistent Place", "Nonexistent Contract");
 
         when(placeClient.hasPermission(any(), eq("deletePlace")))
@@ -112,7 +109,6 @@ class PlaceServiceTest {
         when(placeRepository.findByNameAndProjectContract(placeDTO.getName(), placeDTO.getProjectContract()))
                 .thenReturn(Mono.empty());
 
-        // Act & Assert
         StepVerifier.create(placeService.deletePlace(placeDTO, "test-token"))
                 .assertNext(response -> {
                     assertEquals(NO_CONTENT, response.getStatusCode());
@@ -124,13 +120,12 @@ class PlaceServiceTest {
     @Test
     @DisplayName("Deve retornar FORBIDDEN no delete quando não há permissão")
     void testDeletePlace_ShouldReturnForbidden() {
-        // Arrange
+
         PlaceDTO placeDTO = new PlaceDTO("Deletable Place", "Deletable Contract");
 
         when(placeClient.hasPermission(any(), eq("deletePlace")))
                 .thenReturn(Mono.just(ResponseEntity.status(FORBIDDEN).body("Sem permissão")));
 
-        // Act & Assert
         StepVerifier.create(placeService.deletePlace(placeDTO, "test-token"))
                 .assertNext(response -> {
                     assertEquals(FORBIDDEN, response.getStatusCode());
@@ -142,7 +137,7 @@ class PlaceServiceTest {
     @Test
     @DisplayName("Deve retornar OK quando Place existir no existsByNameAndProjectContract")
     void testExistsByNameAndProjectContract_ShouldReturnOK() {
-        // Arrange
+
         PlaceRequestDTO requestDTO = new PlaceRequestDTO("Existing Place", "Existing Contract");
 
         when(placeClient.hasPermission(any(), eq("existPlace")))
@@ -151,7 +146,6 @@ class PlaceServiceTest {
         when(placeRepository.findByNameAndProjectContract(requestDTO.getName(), requestDTO.getContract()))
                 .thenReturn(Mono.just(new Place("Existing Place", "Existing Contract")));
 
-        // Act & Assert
         StepVerifier.create(placeService.existsByNameAndProjectContract(requestDTO, "test-token"))
                 .assertNext(response -> {
                     assertEquals(OK, response.getStatusCode());
@@ -163,7 +157,7 @@ class PlaceServiceTest {
     @Test
     @DisplayName("Deve retornar NO_CONTENT quando Place não existir no existsByNameAndProjectContract")
     void testExistsByNameAndProjectContract_ShouldReturnNoContent() {
-        // Arrange
+
         PlaceRequestDTO requestDTO = new PlaceRequestDTO("Nonexistent Place", "Nonexistent Contract");
 
         when(placeClient.hasPermission(any(), eq("existPlace")))
@@ -172,7 +166,6 @@ class PlaceServiceTest {
         when(placeRepository.findByNameAndProjectContract(requestDTO.getName(), requestDTO.getContract()))
                 .thenReturn(Mono.empty());
 
-        // Act & Assert
         StepVerifier.create(placeService.existsByNameAndProjectContract(requestDTO, "test-token"))
                 .assertNext(response -> {
                     assertEquals(NO_CONTENT, response.getStatusCode());
@@ -180,4 +173,6 @@ class PlaceServiceTest {
                 })
                 .verifyComplete();
     }
+
+
 }
