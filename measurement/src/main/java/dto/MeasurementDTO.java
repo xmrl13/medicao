@@ -23,6 +23,7 @@ public class MeasurementDTO {
     @NotNull
     private LocalDate endDate;
 
+
     @Pattern(regexp = "^(0[1-9]|1[0-2])/([0-9]{4})$", message = "Formato inválido para yearMonth. Deve ser MM/YYYY.")
     private String yearMonth;
 
