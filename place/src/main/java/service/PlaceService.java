@@ -82,7 +82,6 @@ public class PlaceService {
                                 .body("Erro ao verificar permissão: " + message));
                     }
 
-                    // Prossegue com a exclusão se a permissão for concedida
                     return placeRepository.findByNameAndProjectContract(placeDTO.getName(), placeDTO.getProjectContract())
                             .flatMap(existingPlace ->
                                     placeRepository.delete(existingPlace)
