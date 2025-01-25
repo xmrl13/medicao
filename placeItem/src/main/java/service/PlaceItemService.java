@@ -20,12 +20,11 @@ import static org.springframework.http.HttpStatus.*;
 public class PlaceItemService {
 
     private final PlaceItemRepository placeItemRepository;
+    private final PlaceItemClient placeItemClient;
 
-    @Autowired
-    private PlaceItemClient placeItemClient;
-
-    public PlaceItemService(PlaceItemRepository placeItemRepository) {
+    public PlaceItemService(PlaceItemRepository placeItemRepository, PlaceItemClient placeItemClient) {
         this.placeItemRepository = placeItemRepository;
+        this.placeItemClient = placeItemClient;
     }
 
     public Mono<ResponseEntity<String>> createPlaceItem(PlaceItemRequestDTO placeItemRequestDTO, String token) {
