@@ -3,7 +3,7 @@ package model;
 import org.junit.jupiter.api.Test;
 import static org.assertj.core.api.Assertions.assertThat;
 
-class ItemTest {
+class ItemModelTest {
 
     @Test
     void testEqualsAndHashCode() {

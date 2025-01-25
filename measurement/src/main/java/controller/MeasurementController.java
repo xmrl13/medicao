@@ -28,8 +28,6 @@ public class MeasurementController {
 
     @PostMapping("/exist")
     public Mono<ResponseEntity<String>> existMeasurement(@RequestBody MeasurementRequestDTO measurementRequestDTO, @RequestHeader("Authorization") String token) {
-        System.out.println(measurementRequestDTO.getProjectContract());
-        System.out.println(measurementRequestDTO.getYearMonth());
         return measurementService.existsByNameAndContract(measurementRequestDTO, token);
     }
 

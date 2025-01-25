@@ -29,19 +29,6 @@ public class ItemController {
 
     @PostMapping("/exist")
     public Mono<ResponseEntity<String>> existItem(@RequestBody ItemRequestDTO itemRequestDTO, @RequestHeader("Authorization") String token) {
-        System.out.println("executei no controller de project");
         return itemService.existsByNameAndUnit(itemRequestDTO, token);
-    }
-
-
-    @ExceptionHandler(IllegalArgumentException.class)
-    public ResponseEntity<String> handleIllegalArgumentException(IllegalArgumentException ex) {
-        return ResponseEntity.badRequest().body(ex.getMessage());
-    }
-
-
-    @ExceptionHandler(Exception.class)
-    public ResponseEntity<String> Exception(Exception ex) {
-        return ResponseEntity.badRequest().body(ex.getMessage());
     }
 }

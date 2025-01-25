@@ -8,6 +8,7 @@ import org.springframework.data.relational.core.mapping.Column;
 import org.springframework.data.relational.core.mapping.Table;
 
 import java.math.BigDecimal;
+import java.util.List;
 import java.util.Objects;
 
 @Getter
@@ -29,16 +30,10 @@ public class Project {
     private BigDecimal budget;
 
     @Setter
-    @Column("user_id")
-    private Long userId;
+    @Column("user_email")
+    private List<String> userEmail;
 
     public Project() {
-    }
-
-    public Project(String name, String contract, BigDecimal budget) {
-        this.name = name;
-        this.contract = contract;
-        this.budget = budget;
     }
 
     @Override
@@ -46,11 +41,11 @@ public class Project {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         Project project = (Project) o;
-        return Objects.equals(id, project.id) && Objects.equals(name, project.name) && Objects.equals(contract, project.contract) && Objects.equals(budget, project.budget) && Objects.equals(userId, project.userId);
+        return Objects.equals(name, project.name) && Objects.equals(contract, project.contract) && Objects.equals(budget, project.budget) && Objects.equals(userEmail, project.userEmail);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, name, contract, budget, userId);
+        return Objects.hash(name, contract, budget, userEmail);
     }
 }

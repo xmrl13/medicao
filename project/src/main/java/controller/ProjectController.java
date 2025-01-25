@@ -8,6 +8,8 @@ import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Mono;
 import service.ProjectService;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("api/projects")
 public class ProjectController {
@@ -30,4 +32,14 @@ public class ProjectController {
         return projectService.existsByContract(projectRequestDTO, token);
     }
 
+    @GetMapping("/get-contracts-by-email")
+    public Mono<ResponseEntity<List<String>>> getContractsByEmail(@RequestParam("userEmail") String userEmail, @RequestHeader("Authorization") String token) {
+        return projectService.getContractsByUserEmail(userEmail, token);
+    }
+
+    @PostMapping("/add-email-in-project")
+    public Mono<ResponseEntity<String>> addEmailInProject(@RequestBody ProjectRequestDTO projectRequestDTO, @RequestHeader("Authorization") String token) {
+        return projectService.addEmailInProject(projectRequestDTO, token);
+    }
+    
 }
