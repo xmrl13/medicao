@@ -1,8 +1,7 @@
 package controller;
 
 import dto.PlaceDTO;
-import md.place.PlaceRequestDTO;
-import org.springframework.beans.factory.annotation.Autowired;
+import dto.PlaceRequestDTO;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Mono;
@@ -12,8 +11,11 @@ import service.PlaceService;
 @RequestMapping("api/places")
 public class PlaceController {
 
-    @Autowired
-    private PlaceService placeService;
+    private final PlaceService placeService;
+
+    public PlaceController(PlaceService placeService) {
+        this.placeService = placeService;
+    }
 
     @PostMapping("/create")
     public Mono<ResponseEntity<String>> createPlace(@RequestBody PlaceDTO placeDTO, @RequestHeader("Authorization") String token) {

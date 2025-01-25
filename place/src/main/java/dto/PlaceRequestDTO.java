@@ -1,4 +1,4 @@
-package md.place;
+package dto;
 
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -13,4 +13,6 @@ public class PlaceRequestDTO {
 
     private String contract;
 
+    public PlaceRequestDTO(String testPlace, String testContract) {
+    }
 }

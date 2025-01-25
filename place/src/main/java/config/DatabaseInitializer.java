@@ -2,10 +2,12 @@ package config;
 
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Profile;
 import org.springframework.r2dbc.core.DatabaseClient;
 import org.springframework.stereotype.Component;
 
 @Component
+@Profile("!test")
 public class DatabaseInitializer {
 
     @Bean
