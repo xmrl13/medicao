@@ -115,4 +115,31 @@ public class PlaceItemClient {
                 });
     }
 
+    public Mono<ResponseEntity<String>> getEmailByToken(String token) {
+        return webClient.get()
+                .uri("lb://user/api/users/get-email-by-token")
+                .header(HttpHeaders.AUTHORIZATION, token)
+                .retrieve()
+                .onStatus(HttpStatus.NOT_FOUND::equals, clientResponse ->
+                        Mono.error(new ResponseStatusException(HttpStatus.NOT_FOUND, "Ação não encontrada"))
+                )
+                .toEntity(String.class)
+                .onErrorResume(ResponseStatusException.class, ex ->
+                        Mono.just(ResponseEntity.status(HttpStatus.NOT_FOUND).body(ex.getReason()))
+                );
+    }
+
+    public Mono<ResponseEntity<String>> getProjectsContractsByEmail(String email, String token) {
+        return webClient.get()
+                .uri("lb://project/api/projects/get-contracts-by-email?email={email}", email)
+                .header(HttpHeaders.AUTHORIZATION, token)
+                .retrieve()
+                .onStatus(HttpStatus.NOT_FOUND::equals, clientResponse ->
+                        Mono.error(new ResponseStatusException(HttpStatus.NOT_FOUND, "Ação não encontrada"))
+                )
+                .toEntity(String.class)
+                .onErrorResume(ResponseStatusException.class, ex ->
+                        Mono.just(ResponseEntity.status(HttpStatus.NOT_FOUND).body(ex.getReason()))
+                );
+    }
 }

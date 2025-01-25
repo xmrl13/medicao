@@ -20,7 +20,7 @@ public class ProjectDTO {
     @DecimalMin(value = "0.0", inclusive = false, message = "O orçamento deve ser maior que zero.")
     private BigDecimal budget;
 
-    private Long userId;
+    private String userEmail;
 
     public ProjectDTO() {
     }

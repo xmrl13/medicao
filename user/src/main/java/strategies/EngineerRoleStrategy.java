@@ -53,6 +53,16 @@ public class EngineerRoleStrategy implements RoleStrategy {
     }
 
     @Override
+    public boolean getProject() {
+        return true;
+    }
+
+    @Override
+    public boolean addEmailInProject() {
+        return false;
+    }
+
+    @Override
     public boolean createPlace() {
         return true;
     }
@@ -64,6 +74,11 @@ public class EngineerRoleStrategy implements RoleStrategy {
 
     @Override
     public boolean existPlace() {
+        return true;
+    }
+
+    @Override
+    public boolean getPlaceItem() {
         return true;
     }
 

@@ -18,7 +18,7 @@ public class DatabaseInitializer {
                                                 CREATE TABLE IF NOT EXISTS place_itens (
                             id SERIAL PRIMARY KEY,
                             place_name VARCHAR(255),
-                            place_project_contract VARCHAR(255),
+                            project_contract VARCHAR(255),
                             item_name VARCHAR(255),
                             item_unit VARCHAR(50),
                             predicted_value DECIMAL(19, 2),

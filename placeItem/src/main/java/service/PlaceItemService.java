@@ -10,6 +10,10 @@ import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
 import repository.PlaceItemRepository;
 
+import java.util.Arrays;
+import java.util.List;
+import java.util.stream.Collectors;
+
 import static org.springframework.http.HttpStatus.*;
 
 @Service
@@ -69,7 +73,7 @@ public class PlaceItemService {
                                                         .body("Erro ao verificar existência do item"));
                                             }
 
-                                            return placeItemRepository.findByItemNameAndItemUnitAndPlaceNameAndPlaceProjectContract
+                                            return placeItemRepository.findByItemNameAndItemUnitAndPlaceNameAndProjectContract
                                                             (placeItemRequestDTO.getItemName(), placeItemRequestDTO.getItemUnit()
                                                                     , placeItemRequestDTO.getPlaceName(), placeItemRequestDTO.getProjectContract()
                                                             )
@@ -83,7 +87,7 @@ public class PlaceItemService {
                                                                 placeItem.setItemName(placeItemRequestDTO.getItemName());
                                                                 placeItem.setItemUnit(placeItemRequestDTO.getItemUnit());
                                                                 placeItem.setPlaceName(placeItemRequestDTO.getPlaceName());
-                                                                placeItem.setPlaceProjectContract(placeItemRequestDTO.getProjectContract());
+                                                                placeItem.setProjectContract(placeItemRequestDTO.getProjectContract());
                                                                 placeItem.setPredictedValue(placeItemRequestDTO.getPredictedValue());
                                                                 return placeItemRepository.save(placeItem)
                                                                         .map(savedPlaceItem -> ResponseEntity.status(CREATED)
@@ -115,7 +119,7 @@ public class PlaceItemService {
                                 .body("Erro ao verificar permissão: " + message));
                     }
 
-                    return placeItemRepository.findByItemNameAndItemUnitAndPlaceNameAndPlaceProjectContract
+                    return placeItemRepository.findByItemNameAndItemUnitAndPlaceNameAndProjectContract
                                     (placeItemRequestDTO.getItemName(), placeItemRequestDTO.getItemUnit()
                                             , placeItemRequestDTO.getPlaceName(), placeItemRequestDTO.getProjectContract()
                                     )
@@ -172,7 +176,7 @@ public class PlaceItemService {
                                                         .body("Erro ao verificar existência do item"));
                                             }
 
-                                            return placeItemRepository.findByItemNameAndItemUnitAndPlaceNameAndPlaceProjectContract(
+                                            return placeItemRepository.findByItemNameAndItemUnitAndPlaceNameAndProjectContract(
                                                             placeItemRequestDTO.getItemName(),
                                                             placeItemRequestDTO.getItemUnit(),
                                                             placeItemRequestDTO.getPlaceName(),
@@ -188,6 +192,67 @@ public class PlaceItemService {
                 })
                 .onErrorResume(error -> Mono.just(ResponseEntity.status(INTERNAL_SERVER_ERROR)
                         .body("Erro ao verificar a existência do item: " + error.getMessage())));
-
     }
+
+    public Mono<ResponseEntity<?>> getAllPlaceItensByToken(String token) {
+
+        String action = "getPlaceItem";
+
+        return placeItemClient.hasPermission(token, action)
+                .flatMap(responseEntity -> {
+                    HttpStatus status = (HttpStatus) responseEntity.getStatusCode();
+
+                    if (status == HttpStatus.FORBIDDEN) {
+                        return Mono.just(ResponseEntity.status(FORBIDDEN).build());
+                    } else if (status != HttpStatus.OK) {
+                        return Mono.just(ResponseEntity.status(INTERNAL_SERVER_ERROR).build());
+                    }
+
+                    return placeItemClient.getEmailByToken(token)
+                            .flatMap(emailResponse -> {
+                                HttpStatus emailStatus = (HttpStatus) emailResponse.getStatusCode();
+
+                                if (emailStatus == FORBIDDEN) {
+                                    return Mono.just(ResponseEntity.status(FORBIDDEN).build());
+                                } else if (emailStatus != OK) {
+                                    return Mono.just(ResponseEntity.status(INTERNAL_SERVER_ERROR).build());
+                                }
+
+                                String email = emailResponse.getBody();
+                                if (email == null || email.isEmpty()) {
+                                    return Mono.just(ResponseEntity.status(NOT_FOUND).body("Email not found for token."));
+                                }
+
+                                return placeItemClient.getProjectsContractsByEmail(email, token)
+                                        .flatMapMany(projectResponse -> {
+                                            List<String> contracts = Arrays.stream(
+                                                            projectResponse.getBody()
+                                                                    .replace("[", "")
+                                                                    .replace("]", "")
+                                                                    .split(",")
+                                                    )
+                                                    .map(s -> s.replace("\"", "").trim())
+                                                    .collect(Collectors.toList());
+
+                                            System.out.println("Contracts from response (corrigido): " + contracts);
+
+                                            return placeItemRepository.findByProjectContractIn(contracts);
+
+                                        })
+                                        .collectList()
+                                        .flatMap(items -> {
+                                            if (items.isEmpty()) {
+                                                return Mono.just(ResponseEntity.status(HttpStatus.NOT_FOUND).build());
+                                            }
+                                            return Mono.just(ResponseEntity.ok(items));
+                                        });
+
+                            })
+                            .onErrorResume(error -> {
+                                error.printStackTrace();
+                                return Mono.just(ResponseEntity.status(INTERNAL_SERVER_ERROR).build());
+                            });
+                });
+    }
+
 }

@@ -22,6 +22,10 @@ public interface RoleStrategy {
 
     boolean existProject();
 
+    boolean getProject();
+
+    boolean addEmailInProject();
+
     boolean createPlace();
 
     boolean deletePlace();
@@ -39,6 +43,8 @@ public interface RoleStrategy {
     boolean deletePlaceItem();
 
     boolean existPlaceItem();
+
+    boolean getPlaceItem();
 
     boolean createMeasurementPlaceItem();
 

@@ -20,7 +20,7 @@ public class DatabaseInitializer {
                             name VARCHAR(255) NOT NULL,
                             contract VARCHAR(255) NOT NULL UNIQUE,
                             budget NUMERIC(30, 2) NOT NULL,
-                            user_id BIGINT
+                            user_email TEXT[]
                         );
                         """).then())
                     .then(client.sql("CREATE INDEX IF NOT EXISTS idx_projects_name_contract ON projects(name, contract);").then())

@@ -1,6 +1,5 @@
 package controller;
 
-import dto.PlaceItemDTO;
 import dto.PlaceItemRequestDTO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -29,5 +28,10 @@ public class PlaceItemController {
     @PostMapping("/exist")
     public Mono<ResponseEntity<String>> existPlaceItem(@RequestBody PlaceItemRequestDTO placeItemRequestDTO, @RequestHeader("Authorization") String token) {
         return placeItemService.existsByNameAndContract(placeItemRequestDTO, token);
+    }
+
+    @GetMapping("/get-places-itens-by-token")
+    public Mono<ResponseEntity<?>> getAllPlacesItensByToken(@RequestHeader("Authorization") String token) {
+        return placeItemService.getAllPlaceItensByToken(token);
     }
 }

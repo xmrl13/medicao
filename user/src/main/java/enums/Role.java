@@ -60,6 +60,15 @@ public enum Role {
         return strategy.existProject();
     }
 
+    public boolean getProject(){
+        return strategy.getProject();
+    }
+
+    public boolean addEmailInProject(){
+        return strategy.getProject();
+    }
+
+
     public boolean createPlace(){
         return strategy.createPlace();
     }
@@ -94,6 +103,10 @@ public enum Role {
 
     public boolean existPlaceItem(){
         return strategy.existPlaceItem();
+    }
+
+    public boolean getPlaceItem(){
+        return strategy.getPlaceItem();
     }
 
     public boolean createMeasurementPlaceItem(){

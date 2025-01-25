@@ -34,8 +34,8 @@ public class ItemService {
                     HttpStatus status = (HttpStatus) responseEntity.getStatusCode();
                     String message = responseEntity.getBody();
 
-                    if (status == NOT_FOUND) {
-                        return Mono.just(ResponseEntity.status(NOT_FOUND)
+                    if (status == NO_CONTENT) {
+                        return Mono.just(ResponseEntity.status(NO_CONTENT)
                                 .body("Ação não encontrada: " + action));
                     } else if (status == FORBIDDEN) {
                         return Mono.just(ResponseEntity.status(FORBIDDEN)
@@ -72,8 +72,8 @@ public class ItemService {
                     HttpStatus status = (HttpStatus) responseEntity.getStatusCode();
                     String message = responseEntity.getBody();
 
-                    if (status == NOT_FOUND) {
-                        return Mono.just(ResponseEntity.status(NOT_FOUND)
+                    if (status == NO_CONTENT) {
+                        return Mono.just(ResponseEntity.status(NO_CONTENT)
                                 .body("Ação não encontrada: " + action));
                     } else if (status == FORBIDDEN) {
                         return Mono.just(ResponseEntity.status(FORBIDDEN)
@@ -88,7 +88,7 @@ public class ItemService {
                                     itemRepository.delete(existingItem)
                                             .then(Mono.just(ResponseEntity.status(OK)
                                                     .body("Item deletado com sucesso"))))
-                            .switchIfEmpty(Mono.just(ResponseEntity.status(NOT_FOUND)
+                            .switchIfEmpty(Mono.just(ResponseEntity.status(NO_CONTENT)
                                     .body("Item não encontrado com o nome e unidade fornecidos")));
                 })
                 .onErrorResume(error -> Mono.just(ResponseEntity.status(INTERNAL_SERVER_ERROR)
@@ -103,8 +103,8 @@ public class ItemService {
                     HttpStatus status = (HttpStatus) responseEntity.getStatusCode();
                     String message = responseEntity.getBody();
 
-                    if (status == NOT_FOUND) {
-                        return Mono.just(ResponseEntity.status(NOT_FOUND)
+                    if (status == NO_CONTENT) {
+                        return Mono.just(ResponseEntity.status(NO_CONTENT)
                                 .body("Ação não encontrada: " + action));
                     } else if (status == FORBIDDEN) {
                         return Mono.just(ResponseEntity.status(FORBIDDEN)
@@ -119,7 +119,7 @@ public class ItemService {
                                     Mono.just(ResponseEntity.status(OK)
                                             .body("Item encontrado")))
                             .switchIfEmpty(
-                                    Mono.just(ResponseEntity.status(NOT_FOUND)
+                                    Mono.just(ResponseEntity.status(NO_CONTENT)
                                             .body("Item não encontrado")));
                 })
                 .onErrorResume(error -> Mono.just(ResponseEntity.status(INTERNAL_SERVER_ERROR)

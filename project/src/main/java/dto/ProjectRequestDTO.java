@@ -10,4 +10,5 @@ import lombok.Setter;
 public class ProjectRequestDTO {
 
     private String contract;
+    private String userEmail;
 }

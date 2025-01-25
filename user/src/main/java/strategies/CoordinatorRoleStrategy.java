@@ -53,6 +53,16 @@ public class CoordinatorRoleStrategy implements RoleStrategy {
     }
 
     @Override
+    public boolean getProject() {
+        return true;
+    }
+
+    @Override
+    public boolean addEmailInProject() {
+        return false;
+    }
+
+    @Override
     public boolean createPlace() {
         return true;
     }
@@ -94,6 +104,11 @@ public class CoordinatorRoleStrategy implements RoleStrategy {
 
     @Override
     public boolean existPlaceItem() {
+        return true;
+    }
+
+    @Override
+    public boolean getPlaceItem() {
         return true;
     }
 

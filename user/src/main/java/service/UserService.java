@@ -205,6 +205,7 @@ public class UserService {
 
 
     public Mono<String> getRoleFromToken(String token) {
+
         return Mono.defer(() -> {
             try {
                 Claims claims = Jwts.parserBuilder()
@@ -223,5 +224,30 @@ public class UserService {
 
     private Mono<ResponseEntity<?>> saveUser(User user) {
         return userRepository.save(user).thenReturn(ResponseEntity.status(HttpStatus.ACCEPTED).build());
+    }
+
+    public Mono<String> getEmailByToken(String token) {
+
+        if (token.startsWith("Bearer ")) {
+            token = token.replace("Bearer ", "");
+        }
+
+        String finalToken = token;
+
+        return Mono.defer(() -> {
+            try {
+                Claims claims = Jwts.parserBuilder()
+                        .setSigningKey(key)  // Usar a chave apropriada
+                        .build()
+                        .parseClaimsJws(finalToken)
+                        .getBody();
+
+                String email = claims.getSubject();
+
+                return Mono.just(email);
+            } catch (Exception e) {
+                return Mono.error(e);
+            }
+        });
     }
 }

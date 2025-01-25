@@ -20,8 +20,8 @@ public class PlaceItem {
     private String placeName;
 
     @Setter
-    @Column("place_project_contract")
-    private String placeProjectContract;
+    @Column("project_contract")
+    private String projectContract;
 
     @Setter
     @Column("item_name")

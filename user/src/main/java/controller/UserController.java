@@ -32,4 +32,9 @@ public class UserController {
     public Mono<ResponseEntity<?>> updateUser(@Valid @RequestBody UserUpdateDTO userUpdateDTO) {
         return userService.updateUser(userUpdateDTO);
     }
+
+    @GetMapping("/get-email-by-token")
+    public Mono<String> getEmailByToken(@RequestHeader("Authorization") String token) {
+        return userService.getEmailByToken(token);
+    }
 }
