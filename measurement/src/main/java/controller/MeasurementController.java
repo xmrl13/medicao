@@ -2,7 +2,6 @@ package controller;
 
 import dto.MeasurementDTO;
 import dto.MeasurementRequestDTO;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Mono;
@@ -13,8 +12,11 @@ import service.MeasurementService;
 @RequestMapping("api/measurements")
 public class MeasurementController {
 
-    @Autowired
-    private MeasurementService measurementService;
+    private final MeasurementService measurementService;
+
+    public MeasurementController(MeasurementService measurementService) {
+        this.measurementService = measurementService;
+    }
 
     @PostMapping("/create")
     public Mono<ResponseEntity<String>> createMeasurement(@RequestBody MeasurementDTO measurementDTO, @RequestHeader("Authorization") String token) {

@@ -18,4 +18,7 @@ public class MeasurementRequestDTO {
     private LocalDate endDate;
 
     private String yearMonth;
+
+    public MeasurementRequestDTO(String project1, String s) {
+    }
 }

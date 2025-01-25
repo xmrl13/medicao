@@ -60,27 +60,24 @@ public class MeasurementClient {
                     System.out.println("Código de resposta HTTP recebido: " + statusCode);
 
                     if (statusCode == HttpStatus.NOT_FOUND) {
-                        // Retorna diretamente a resposta 404 com mensagem
                         return Mono.just(ResponseEntity.status(HttpStatus.NOT_FOUND)
                                 .body("Projeto não encontrado"));
                     }
 
                     if (statusCode.isError()) {
-                        // Tratamento genérico para outros códigos de erro
                         return clientResponse.bodyToMono(String.class)
-                                .flatMap(errorBody -> Mono.error(new ResponseStatusException(statusCode, errorBody)));
+                                .map(errorBody -> ResponseEntity.status(HttpStatus.FAILED_DEPENDENCY).body(errorBody));
                     }
 
-                    return clientResponse.toEntity(String.class);
+                    return clientResponse.bodyToMono(String.class)
+                            .map(body -> ResponseEntity.ok(body));
                 })
-                .onErrorResume(ResponseStatusException.class, ex -> {
-                    // Mantém o erro original caso seja 404
-                    if (ex.getStatusCode() == HttpStatus.NOT_FOUND) {
-                        return Mono.error(ex);
-                    }
-                    // Transforma outros erros em respostas customizadas
-                    return Mono.just(ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(ex.getReason()));
+                .onErrorResume(ex -> {
+                    System.out.println("Erro inesperado: " + ex.getMessage());
+                    return Mono.just(ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                            .body("Erro ao acessar o serviço externo: " + ex.getMessage()));
                 });
+
     }
 
 }
