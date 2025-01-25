@@ -19,17 +19,15 @@ class PlaceControllerTest {
 
     @Test
     void testCreatePlaceShouldReturnCreated() {
-        // Arrange
+
         PlaceDTO placeDTO = new PlaceDTO("Test Place", "Test Contract");
         String token = "Bearer valid-token";
 
         when(placeService.createPlace(eq(placeDTO), eq(token)))
                 .thenReturn(Mono.just(ResponseEntity.status(201).body("Bacia criada com sucesso")));
 
-        // Act
         Mono<ResponseEntity<String>> response = placeController.createPlace(placeDTO, token);
 
-        // Assert
         ResponseEntity<String> result = response.block();
         assertThat(result).isNotNull();
         assertThat(result.getStatusCodeValue()).isEqualTo(201);
@@ -38,17 +36,15 @@ class PlaceControllerTest {
 
     @Test
     void testDeletePlaceShouldReturnOk() {
-        // Arrange
+
         PlaceDTO placeDTO = new PlaceDTO("Test Place", "Test Contract");
         String token = "Bearer valid-token";
 
         when(placeService.deletePlace(eq(placeDTO), eq(token)))
                 .thenReturn(Mono.just(ResponseEntity.ok("Bacia deletada com sucesso")));
 
-        // Act
         Mono<ResponseEntity<String>> response = placeController.deletePlace(placeDTO, token);
 
-        // Assert
         ResponseEntity<String> result = response.block();
         assertThat(result).isNotNull();
         assertThat(result.getStatusCodeValue()).isEqualTo(200);
@@ -57,17 +53,15 @@ class PlaceControllerTest {
 
     @Test
     void testExistByNameAndProjectShouldReturnFound() {
-        // Arrange
+
         PlaceRequestDTO placeRequestDTO = new PlaceRequestDTO("Test Place", "Test Contract");
         String token = "Bearer valid-token";
 
         when(placeService.existsByNameAndProjectContract(eq(placeRequestDTO), eq(token)))
                 .thenReturn(Mono.just(ResponseEntity.ok("Bacia encontrada")));
 
-        // Act
         Mono<ResponseEntity<String>> response = placeController.existByNameAndProject(placeRequestDTO, token);
 
-        // Assert
         ResponseEntity<String> result = response.block();
         assertThat(result).isNotNull();
         assertThat(result.getStatusCodeValue()).isEqualTo(200);
@@ -76,17 +70,15 @@ class PlaceControllerTest {
 
     @Test
     void testCreatePlaceShouldReturnConflictWhenPlaceExists() {
-        // Arrange
+
         PlaceDTO placeDTO = new PlaceDTO("Existing Place", "Existing Contract");
         String token = "Bearer valid-token";
 
         when(placeService.createPlace(eq(placeDTO), eq(token)))
                 .thenReturn(Mono.just(ResponseEntity.status(409).body("A bacia já existe para o contrato fornecido")));
 
-        // Act
         Mono<ResponseEntity<String>> response = placeController.createPlace(placeDTO, token);
 
-        // Assert
         ResponseEntity<String> result = response.block();
         assertThat(result).isNotNull();
         assertThat(result.getStatusCodeValue()).isEqualTo(409);
@@ -95,17 +87,15 @@ class PlaceControllerTest {
 
     @Test
     void testDeletePlaceShouldReturnNotFoundWhenNotExists() {
-        // Arrange
+
         PlaceDTO placeDTO = new PlaceDTO("Nonexistent Place", "Nonexistent Contract");
         String token = "Bearer valid-token";
 
         when(placeService.deletePlace(eq(placeDTO), eq(token)))
                 .thenReturn(Mono.just(ResponseEntity.status(404).body("Bacia não encontrada")));
 
-        // Act
         Mono<ResponseEntity<String>> response = placeController.deletePlace(placeDTO, token);
 
-        // Assert
         ResponseEntity<String> result = response.block();
         assertThat(result).isNotNull();
         assertThat(result.getStatusCodeValue()).isEqualTo(404);
@@ -114,17 +104,15 @@ class PlaceControllerTest {
 
     @Test
     void testExistByNameAndProjectShouldReturnNotFound() {
-        // Arrange
+
         PlaceRequestDTO placeRequestDTO = new PlaceRequestDTO("Nonexistent Place", "Nonexistent Contract");
         String token = "Bearer valid-token";
 
         when(placeService.existsByNameAndProjectContract(eq(placeRequestDTO), eq(token)))
                 .thenReturn(Mono.just(ResponseEntity.status(404).body("Bacia não encontrada")));
 
-        // Act
         Mono<ResponseEntity<String>> response = placeController.existByNameAndProject(placeRequestDTO, token);
 
-        // Assert
         ResponseEntity<String> result = response.block();
         assertThat(result).isNotNull();
         assertThat(result.getStatusCodeValue()).isEqualTo(404);
@@ -133,17 +121,15 @@ class PlaceControllerTest {
 
     @Test
     void testCreatePlaceShouldHandleInternalServerError() {
-        // Arrange
+
         PlaceDTO placeDTO = new PlaceDTO("Test Place", "Test Contract");
         String token = "Bearer valid-token";
 
         when(placeService.createPlace(eq(placeDTO), eq(token)))
                 .thenReturn(Mono.just(ResponseEntity.status(500).body("Erro interno do servidor")));
 
-        // Act
         Mono<ResponseEntity<String>> response = placeController.createPlace(placeDTO, token);
 
-        // Assert
         ResponseEntity<String> result = response.block();
         assertThat(result).isNotNull();
         assertThat(result.getStatusCodeValue()).isEqualTo(500);
