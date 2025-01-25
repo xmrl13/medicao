@@ -20,3 +20,5 @@ docker container prune // remove containers antigos e parados
 //Implementar testes de integração e carga.
 //Implementar frontend
 
+// Conforme valor de measurement_place_item atualizar place_item para ver se não ultrapassa o previsto.
+

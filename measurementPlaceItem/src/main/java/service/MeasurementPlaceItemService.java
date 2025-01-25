@@ -66,11 +66,6 @@ public class MeasurementPlaceItemService {
                                                         .body("Erro ao verificar existência do item e lugar"));
                                             }
 
-                                            System.out.println(measurementPlaceItemDTO.getPlaceName());
-                                            System.out.println(measurementPlaceItemDTO.getProjectContract());
-                                            System.out.println(measurementPlaceItemDTO.getItemName());
-                                            System.out.println(measurementPlaceItemDTO.getItemUnit());
-                                            System.out.println(measurementPlaceItemDTO.getYearMonth());
 
                                             return measurementPlaceItemRepository.findByPlaceNameAndProjectContractAndItemNameAndItemUnitAndYearMonth(
                                                             measurementPlaceItemDTO.getPlaceName(),

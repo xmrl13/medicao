@@ -34,14 +34,14 @@ public class ItemService {
                     HttpStatus status = (HttpStatus) responseEntity.getStatusCode();
                     String message = responseEntity.getBody();
 
-                    if (status == NO_CONTENT) {
-                        return Mono.just(ResponseEntity.status(NO_CONTENT)
+                    if (status == NOT_FOUND) {
+                        return Mono.just(ResponseEntity.status(NOT_FOUND)
                                 .body("Ação não encontrada: " + action));
                     } else if (status == FORBIDDEN) {
                         return Mono.just(ResponseEntity.status(FORBIDDEN)
                                 .body("Sem permissão para realizar essa ação"));
                     } else if (status != OK) {
-                        return Mono.just(ResponseEntity.status(INTERNAL_SERVER_ERROR)
+                        return Mono.just(ResponseEntity.status(FAILED_DEPENDENCY)
                                 .body("Erro ao verificar permissão: " + message));
                     }
 
@@ -72,14 +72,14 @@ public class ItemService {
                     HttpStatus status = (HttpStatus) responseEntity.getStatusCode();
                     String message = responseEntity.getBody();
 
-                    if (status == NO_CONTENT) {
-                        return Mono.just(ResponseEntity.status(NO_CONTENT)
+                    if (status == NOT_FOUND) {
+                        return Mono.just(ResponseEntity.status(NOT_FOUND)
                                 .body("Ação não encontrada: " + action));
                     } else if (status == FORBIDDEN) {
                         return Mono.just(ResponseEntity.status(FORBIDDEN)
                                 .body("Sem permissão para realizar essa ação"));
                     } else if (status != OK) {
-                        return Mono.just(ResponseEntity.status(INTERNAL_SERVER_ERROR)
+                        return Mono.just(ResponseEntity.status(FAILED_DEPENDENCY)
                                 .body("Erro ao verificar permissão: " + message));
                     }
 
@@ -103,14 +103,14 @@ public class ItemService {
                     HttpStatus status = (HttpStatus) responseEntity.getStatusCode();
                     String message = responseEntity.getBody();
 
-                    if (status == NO_CONTENT) {
-                        return Mono.just(ResponseEntity.status(NO_CONTENT)
+                    if (status == NOT_FOUND) {
+                        return Mono.just(ResponseEntity.status(NOT_FOUND)
                                 .body("Ação não encontrada: " + action));
                     } else if (status == FORBIDDEN) {
                         return Mono.just(ResponseEntity.status(FORBIDDEN)
                                 .body("Sem permissão para realizar essa ação"));
                     } else if (status != OK) {
-                        return Mono.just(ResponseEntity.status(INTERNAL_SERVER_ERROR)
+                        return Mono.just(ResponseEntity.status(FAILED_DEPENDENCY)
                                 .body("Erro ao verificar permissão: " + message));
                     }
 
