@@ -31,16 +31,10 @@ public class PlaceService {
                     HttpStatus status = (HttpStatus) responseEntity.getStatusCode();
                     String message = responseEntity.getBody();
 
-                    if (status == NOT_FOUND) {
-                        return Mono.just(ResponseEntity.status(NOT_FOUND)
-                                .body("Ação não encontrada: " + action));
-                    } else if (status == FORBIDDEN) {
-                        return Mono.just(ResponseEntity.status(FORBIDDEN)
-                                .body("Sem permissão para realizar essa ação"));
+                    if (status == SERVICE_UNAVAILABLE || status == INTERNAL_SERVER_ERROR) {
+                        return Mono.just(ResponseEntity.status(FAILED_DEPENDENCY).body("Uma dependência falhou."));
                     } else if (status != OK) {
-
-                        return Mono.just(ResponseEntity.status(FAILED_DEPENDENCY)
-                                .body("Erro ao verificar permissão: " + message));
+                        return Mono.just(ResponseEntity.status(status).body(message));
                     }
 
                     return placeRepository.findByNameAndProjectContract(placeDTO.getName(), placeDTO.getProjectContract())
@@ -59,7 +53,8 @@ public class PlaceService {
                                                         .body("Bacia criada com sucesso"));
                                     })
                             );
-                });
+                }).onErrorResume(error -> Mono.just(ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                        .body("Erro ao processar a exclusão da bacia: " + error.getMessage())));
     }
 
 
@@ -71,15 +66,10 @@ public class PlaceService {
                     HttpStatus status = (HttpStatus) responseEntity.getStatusCode();
                     String message = responseEntity.getBody();
 
-                    if (status == HttpStatus.NOT_FOUND) {
-                        return Mono.just(ResponseEntity.status(HttpStatus.NOT_FOUND)
-                                .body("Ação não encontrada: " + action));
-                    } else if (status == HttpStatus.FORBIDDEN) {
-                        return Mono.just(ResponseEntity.status(HttpStatus.FORBIDDEN)
-                                .body("Sem permissão para realizar essa ação"));
-                    } else if (status != HttpStatus.OK) {
-                        return Mono.just(ResponseEntity.status(FAILED_DEPENDENCY)
-                                .body("Erro ao verificar permissão: " + message));
+                    if (status == SERVICE_UNAVAILABLE || status == INTERNAL_SERVER_ERROR) {
+                        return Mono.just(ResponseEntity.status(FAILED_DEPENDENCY).body("Uma dependência falhou."));
+                    } else if (status != OK) {
+                        return Mono.just(ResponseEntity.status(status).body(message));
                     }
 
                     return placeRepository.findByNameAndProjectContract(placeDTO.getName(), placeDTO.getProjectContract())
@@ -103,15 +93,10 @@ public class PlaceService {
                     HttpStatus status = (HttpStatus) responseEntity.getStatusCode();
                     String message = responseEntity.getBody();
 
-                    if (status == HttpStatus.NOT_FOUND) {
-                        return Mono.just(ResponseEntity.status(HttpStatus.NOT_FOUND)
-                                .body("Ação não encontrada: " + action));
-                    } else if (status == HttpStatus.FORBIDDEN) {
-                        return Mono.just(ResponseEntity.status(HttpStatus.FORBIDDEN)
-                                .body("Sem permissão para realizar essa ação"));
-                    } else if (status != HttpStatus.OK) {
-                        return Mono.just(ResponseEntity.status(FAILED_DEPENDENCY)
-                                .body("Erro ao verificar permissão: " + message));
+                    if (status == SERVICE_UNAVAILABLE || status == INTERNAL_SERVER_ERROR) {
+                        return Mono.just(ResponseEntity.status(FAILED_DEPENDENCY).body("Uma dependência falhou."));
+                    } else if (status != OK) {
+                        return Mono.just(ResponseEntity.status(status).body(message));
                     }
 
                     return placeRepository.findByNameAndProjectContract(placeRequestDTO.getName(), placeRequestDTO.getContract())

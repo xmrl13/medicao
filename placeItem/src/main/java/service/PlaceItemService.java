@@ -3,7 +3,6 @@ package service;
 import client.PlaceItemClient;
 import dto.PlaceItemRequestDTO;
 import model.PlaceItem;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -35,40 +34,30 @@ public class PlaceItemService {
                     HttpStatus status = (HttpStatus) responseEntity.getStatusCode();
                     String message = responseEntity.getBody();
 
-                    if (status == NOT_FOUND) {
-                        return Mono.just(ResponseEntity.status(NOT_FOUND)
-                                .body("Ação não encontrada: " + action));
-                    } else if (status == FORBIDDEN) {
-                        return Mono.just(ResponseEntity.status(FORBIDDEN)
-                                .body("Sem permissão para realizar essa ação"));
+                    if (status == SERVICE_UNAVAILABLE || status == INTERNAL_SERVER_ERROR) {
+                        return Mono.just(ResponseEntity.status(FAILED_DEPENDENCY).body("Uma dependência falhou."));
                     } else if (status != OK) {
-                        return Mono.just(ResponseEntity.status(INTERNAL_SERVER_ERROR)
-                                .body("Erro ao verificar permissão: " + message));
+                        return Mono.just(ResponseEntity.status(status).body(message));
                     }
-
-                    System.out.println(placeItemRequestDTO.getItemName());
-                    System.out.println(placeItemRequestDTO.getItemUnit());
-                    System.out.println(placeItemRequestDTO.getPlaceName());
-                    System.out.println(placeItemRequestDTO.getProjectContract());
 
                     return placeItemClient.placeExists(token, placeItemRequestDTO.getPlaceName(), placeItemRequestDTO.getProjectContract())
                             .flatMap(placeExistsResponse -> {
                                 System.out.println(placeExistsResponse.getStatusCode());
                                 if (placeExistsResponse.getStatusCode() == NOT_FOUND) {
-                                    return Mono.just(ResponseEntity.status(NOT_FOUND)
+                                    return Mono.just(ResponseEntity.status(NO_CONTENT)
                                             .body("Bacia não encontrada, nome: " + placeItemRequestDTO.getPlaceName() + " contrato: " + placeItemRequestDTO.getProjectContract()));
                                 } else if (placeExistsResponse.getStatusCode() != OK) {
-                                    return Mono.just(ResponseEntity.status(INTERNAL_SERVER_ERROR)
+                                    return Mono.just(ResponseEntity.status(FAILED_DEPENDENCY)
                                             .body("Erro ao verificar existência da bacia"));
                                 }
 
                                 return placeItemClient.itemExists(token, placeItemRequestDTO.getItemName(), placeItemRequestDTO.getItemUnit())
                                         .flatMap(itemExistsResponse -> {
                                             if (itemExistsResponse.getStatusCode() == NOT_FOUND) {
-                                                return Mono.just(ResponseEntity.status(NOT_FOUND)
+                                                return Mono.just(ResponseEntity.status(NO_CONTENT)
                                                         .body("Item não encontrado, nome: " + placeItemRequestDTO.getItemName() + " unidade: " + placeItemRequestDTO.getItemUnit()));
                                             } else if (itemExistsResponse.getStatusCode() != OK) {
-                                                return Mono.just(ResponseEntity.status(INTERNAL_SERVER_ERROR)
+                                                return Mono.just(ResponseEntity.status(FAILED_DEPENDENCY)
                                                         .body("Erro ao verificar existência do item"));
                                             }
 
@@ -107,15 +96,10 @@ public class PlaceItemService {
                     HttpStatus status = (HttpStatus) responseEntity.getStatusCode();
                     String message = responseEntity.getBody();
 
-                    if (status == NOT_FOUND) {
-                        return Mono.just(ResponseEntity.status(NOT_FOUND)
-                                .body("Ação não encontrada: " + action));
-                    } else if (status == FORBIDDEN) {
-                        return Mono.just(ResponseEntity.status(FORBIDDEN)
-                                .body("Sem permissão para realizar essa ação"));
+                    if (status == SERVICE_UNAVAILABLE || status == INTERNAL_SERVER_ERROR) {
+                        return Mono.just(ResponseEntity.status(FAILED_DEPENDENCY).body("Uma dependência falhou."));
                     } else if (status != OK) {
-                        return Mono.just(ResponseEntity.status(INTERNAL_SERVER_ERROR)
-                                .body("Erro ao verificar permissão: " + message));
+                        return Mono.just(ResponseEntity.status(status).body(message));
                     }
 
                     return placeItemRepository.findByItemNameAndItemUnitAndPlaceNameAndProjectContract
@@ -126,7 +110,7 @@ public class PlaceItemService {
                                     placeItemRepository.delete(existingPlaceItem)
                                             .then(Mono.just(ResponseEntity.status(OK)
                                                     .body("Item Deletado com sucesso"))))
-                            .switchIfEmpty(Mono.just(ResponseEntity.status(NOT_FOUND)
+                            .switchIfEmpty(Mono.just(ResponseEntity.status(NO_CONTENT)
                                     .body("Não encontrado")));
                 })
                 .onErrorResume(error -> Mono.just(ResponseEntity.status(INTERNAL_SERVER_ERROR)
@@ -142,36 +126,31 @@ public class PlaceItemService {
                     HttpStatus status = (HttpStatus) responseEntity.getStatusCode();
                     String message = responseEntity.getBody();
 
-                    if (status == NOT_FOUND) {
-                        return Mono.just(ResponseEntity.status(NOT_FOUND)
-                                .body("Ação não encontrada: " + action));
-                    } else if (status == FORBIDDEN) {
-                        return Mono.just(ResponseEntity.status(FORBIDDEN)
-                                .body("Sem permissão para realizar essa ação"));
+                    if (status == SERVICE_UNAVAILABLE || status == INTERNAL_SERVER_ERROR) {
+                        return Mono.just(ResponseEntity.status(FAILED_DEPENDENCY).body("Uma dependência falhou."));
                     } else if (status != OK) {
-                        return Mono.just(ResponseEntity.status(INTERNAL_SERVER_ERROR)
-                                .body("Erro ao verificar permissão: " + message));
+                        return Mono.just(ResponseEntity.status(status).body(message));
                     }
 
                     return placeItemClient.placeExists(token, placeItemRequestDTO.getPlaceName(), placeItemRequestDTO.getProjectContract())
                             .flatMap(placeExistsResponse -> {
                                 if (placeExistsResponse.getStatusCode() == NOT_FOUND) {
-                                    return Mono.just(ResponseEntity.status(NOT_FOUND)
+                                    return Mono.just(ResponseEntity.status(NO_CONTENT)
                                             .body("Bacia não encontrada, nome: " + placeItemRequestDTO.getPlaceName() +
                                                     " contrato: " + placeItemRequestDTO.getProjectContract()));
                                 } else if (placeExistsResponse.getStatusCode() != OK) {
-                                    return Mono.just(ResponseEntity.status(INTERNAL_SERVER_ERROR)
+                                    return Mono.just(ResponseEntity.status(FAILED_DEPENDENCY)
                                             .body("Erro ao verificar existência da bacia"));
                                 }
 
                                 return placeItemClient.itemExists(token, placeItemRequestDTO.getItemName(), placeItemRequestDTO.getItemUnit())
                                         .flatMap(itemExistsResponse -> {
                                             if (itemExistsResponse.getStatusCode() == NOT_FOUND) {
-                                                return Mono.just(ResponseEntity.status(NOT_FOUND)
+                                                return Mono.just(ResponseEntity.status(NO_CONTENT)
                                                         .body("Item não encontrado, nome: " + placeItemRequestDTO.getItemName() +
                                                                 " unidade: " + placeItemRequestDTO.getItemUnit()));
                                             } else if (itemExistsResponse.getStatusCode() != OK) {
-                                                return Mono.just(ResponseEntity.status(INTERNAL_SERVER_ERROR)
+                                                return Mono.just(ResponseEntity.status(FAILED_DEPENDENCY)
                                                         .body("Erro ao verificar existência do item"));
                                             }
 
@@ -184,7 +163,7 @@ public class PlaceItemService {
                                                             Mono.just(ResponseEntity.status(OK)
                                                                     .body("Item encontrado")))
                                                     .switchIfEmpty(
-                                                            Mono.just(ResponseEntity.status(NOT_FOUND)
+                                                            Mono.just(ResponseEntity.status(NO_CONTENT)
                                                                     .body("Item não encontrado")));
                                         });
                             });
@@ -200,11 +179,12 @@ public class PlaceItemService {
         return placeItemClient.hasPermission(token, action)
                 .flatMap(responseEntity -> {
                     HttpStatus status = (HttpStatus) responseEntity.getStatusCode();
+                    String message = responseEntity.getBody();
 
-                    if (status == HttpStatus.FORBIDDEN) {
-                        return Mono.just(ResponseEntity.status(FORBIDDEN).build());
-                    } else if (status != HttpStatus.OK) {
-                        return Mono.just(ResponseEntity.status(INTERNAL_SERVER_ERROR).build());
+                    if (status == SERVICE_UNAVAILABLE || status == INTERNAL_SERVER_ERROR) {
+                        return Mono.just(ResponseEntity.status(FAILED_DEPENDENCY).body("Uma dependência falhou."));
+                    } else if (status != OK) {
+                        return Mono.just(ResponseEntity.status(status).body(message));
                     }
 
                     return placeItemClient.getEmailByToken(token)
@@ -219,7 +199,7 @@ public class PlaceItemService {
 
                                 String email = emailResponse.getBody();
                                 if (email == null || email.isEmpty()) {
-                                    return Mono.just(ResponseEntity.status(NOT_FOUND).body("Email not found for token."));
+                                    return Mono.just(ResponseEntity.status(NO_CONTENT).body("Email not found for token."));
                                 }
 
                                 return placeItemClient.getProjectsContractsByEmail(email, token)
@@ -241,7 +221,7 @@ public class PlaceItemService {
                                         .collectList()
                                         .flatMap(items -> {
                                             if (items.isEmpty()) {
-                                                return Mono.just(ResponseEntity.status(HttpStatus.NOT_FOUND).build());
+                                                return Mono.just(ResponseEntity.status(NO_CONTENT).build());
                                             }
                                             return Mono.just(ResponseEntity.ok(items));
                                         });
@@ -253,5 +233,4 @@ public class PlaceItemService {
                             });
                 });
     }
-
 }

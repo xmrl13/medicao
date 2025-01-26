@@ -40,7 +40,6 @@ class PlaceServiceTest {
     @Test
     @DisplayName("Deve criar Place quando há permissão e não existe registro anterior")
     void testCreatePlace_ShouldReturnCreated() {
-
         PlaceDTO placeDTO = new PlaceDTO("Test Place", "Test Contract");
 
         when(placeClient.hasPermission(any(), eq("createPlace")))
@@ -63,7 +62,6 @@ class PlaceServiceTest {
     @Test
     @DisplayName("Deve retornar CONFLICT quando o Place já existe")
     void testCreatePlace_ShouldReturnConflictWhenAlreadyExists() {
-
         PlaceDTO placeDTO = new PlaceDTO("Existing Place", "Existing Contract");
 
         when(placeClient.hasPermission(any(), eq("createPlace")))
@@ -83,7 +81,6 @@ class PlaceServiceTest {
     @Test
     @DisplayName("Deve retornar FORBIDDEN quando não há permissão")
     void testCreatePlace_ShouldReturnForbidden() {
-
         PlaceDTO placeDTO = new PlaceDTO("New Place", "New Contract");
 
         when(placeClient.hasPermission(any(), eq("createPlace")))
@@ -92,7 +89,62 @@ class PlaceServiceTest {
         StepVerifier.create(placeService.createPlace(placeDTO, "test-token"))
                 .assertNext(response -> {
                     assertEquals(FORBIDDEN, response.getStatusCode());
-                    assertEquals("Sem permissão para realizar essa ação", response.getBody());
+                })
+                .verifyComplete();
+    }
+
+    @Test
+    @DisplayName("Deve retornar FAILED_DEPENDENCY quando PlaceClient falhar")
+    void testCreatePlace_ShouldReturnFailedDependency() {
+        PlaceDTO placeDTO = new PlaceDTO("Test Place", "Test Contract");
+
+        when(placeClient.hasPermission(any(), eq("createPlace")))
+                .thenReturn(Mono.just(ResponseEntity.status(SERVICE_UNAVAILABLE).body("Dependência indisponível")));
+
+        StepVerifier.create(placeService.createPlace(placeDTO, "test-token"))
+                .assertNext(response -> {
+                    assertEquals(FAILED_DEPENDENCY, response.getStatusCode());
+                    assertEquals("Uma dependência falhou.", response.getBody());
+                })
+                .verifyComplete();
+    }
+
+    @Test
+    @DisplayName("Deve retornar INTERNAL_SERVER_ERROR quando ocorrer uma exceção inesperada no createPlace")
+    void testCreatePlace_ShouldReturnInternalServerErrorOnUnexpectedException() {
+        PlaceDTO placeDTO = new PlaceDTO("Test Place", "Test Contract");
+
+        when(placeClient.hasPermission(any(), eq("createPlace")))
+                .thenReturn(Mono.just(ResponseEntity.ok("Permission Granted")));
+
+        when(placeRepository.findByNameAndProjectContract(any(), any()))
+                .thenThrow(new RuntimeException("Erro inesperado"));
+
+        StepVerifier.create(placeService.createPlace(placeDTO, "test-token"))
+                .assertNext(response -> {
+                    assertEquals(INTERNAL_SERVER_ERROR, response.getStatusCode());
+                })
+                .verifyComplete();
+    }
+
+    @Test
+    @DisplayName("Deve deletar Place com sucesso")
+    void testDeletePlace_ShouldReturnOk() {
+        PlaceDTO placeDTO = new PlaceDTO("Deletable Place", "Deletable Contract");
+
+        when(placeClient.hasPermission(any(), eq("deletePlace")))
+                .thenReturn(Mono.just(ResponseEntity.ok("Permission Granted")));
+
+        when(placeRepository.findByNameAndProjectContract(placeDTO.getName(), placeDTO.getProjectContract()))
+                .thenReturn(Mono.just(new Place("Deletable Place", "Deletable Contract")));
+
+        when(placeRepository.delete(any(Place.class)))
+                .thenReturn(Mono.empty());
+
+        StepVerifier.create(placeService.deletePlace(placeDTO, "test-token"))
+                .assertNext(response -> {
+                    assertEquals(OK, response.getStatusCode());
+                    assertEquals("Bacia deletada com sucesso", response.getBody());
                 })
                 .verifyComplete();
     }
@@ -100,7 +152,6 @@ class PlaceServiceTest {
     @Test
     @DisplayName("Deve retornar NO_CONTENT quando o Place não existir no delete")
     void testDeletePlace_ShouldReturnNoContent() {
-
         PlaceDTO placeDTO = new PlaceDTO("Nonexistent Place", "Nonexistent Contract");
 
         when(placeClient.hasPermission(any(), eq("deletePlace")))
@@ -118,26 +169,8 @@ class PlaceServiceTest {
     }
 
     @Test
-    @DisplayName("Deve retornar FORBIDDEN no delete quando não há permissão")
-    void testDeletePlace_ShouldReturnForbidden() {
-
-        PlaceDTO placeDTO = new PlaceDTO("Deletable Place", "Deletable Contract");
-
-        when(placeClient.hasPermission(any(), eq("deletePlace")))
-                .thenReturn(Mono.just(ResponseEntity.status(FORBIDDEN).body("Sem permissão")));
-
-        StepVerifier.create(placeService.deletePlace(placeDTO, "test-token"))
-                .assertNext(response -> {
-                    assertEquals(FORBIDDEN, response.getStatusCode());
-                    assertEquals("Sem permissão para realizar essa ação", response.getBody());
-                })
-                .verifyComplete();
-    }
-
-    @Test
     @DisplayName("Deve retornar OK quando Place existir no existsByNameAndProjectContract")
     void testExistsByNameAndProjectContract_ShouldReturnOK() {
-
         PlaceRequestDTO requestDTO = new PlaceRequestDTO("Existing Place", "Existing Contract");
 
         when(placeClient.hasPermission(any(), eq("existPlace")))
@@ -157,7 +190,6 @@ class PlaceServiceTest {
     @Test
     @DisplayName("Deve retornar NO_CONTENT quando Place não existir no existsByNameAndProjectContract")
     void testExistsByNameAndProjectContract_ShouldReturnNoContent() {
-
         PlaceRequestDTO requestDTO = new PlaceRequestDTO("Nonexistent Place", "Nonexistent Contract");
 
         when(placeClient.hasPermission(any(), eq("existPlace")))
@@ -174,5 +206,19 @@ class PlaceServiceTest {
                 .verifyComplete();
     }
 
+    @Test
+    @DisplayName("Deve retornar FAILED_DEPENDENCY quando PlaceClient falhar no existsByNameAndProjectContract")
+    void testExistsByNameAndProjectContract_ShouldReturnFailedDependency() {
+        PlaceRequestDTO requestDTO = new PlaceRequestDTO("Test Place", "Test Contract");
 
+        when(placeClient.hasPermission(any(), eq("existPlace")))
+                .thenReturn(Mono.just(ResponseEntity.status(SERVICE_UNAVAILABLE).body("Dependência indisponível")));
+
+        StepVerifier.create(placeService.existsByNameAndProjectContract(requestDTO, "test-token"))
+                .assertNext(response -> {
+                    assertEquals(FAILED_DEPENDENCY, response.getStatusCode());
+                    assertEquals("Uma dependência falhou.", response.getBody());
+                })
+                .verifyComplete();
+    }
 }

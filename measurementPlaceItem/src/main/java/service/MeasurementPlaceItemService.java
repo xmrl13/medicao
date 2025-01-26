@@ -33,15 +33,10 @@ public class MeasurementPlaceItemService {
                     HttpStatus status = (HttpStatus) responseEntity.getStatusCode();
                     String message = responseEntity.getBody();
 
-                    if (status == NOT_FOUND) {
-                        return Mono.just(ResponseEntity.status(NOT_FOUND)
-                                .body("Ação não encontrada: " + action));
-                    } else if (status == FORBIDDEN) {
-                        return Mono.just(ResponseEntity.status(FORBIDDEN)
-                                .body("Sem permissão para realizar essa ação"));
+                    if (status == SERVICE_UNAVAILABLE || status == INTERNAL_SERVER_ERROR) {
+                        return Mono.just(ResponseEntity.status(FAILED_DEPENDENCY).body("Uma dependência falhou."));
                     } else if (status != OK) {
-                        return Mono.just(ResponseEntity.status(INTERNAL_SERVER_ERROR)
-                                .body("Erro ao verificar permissão: " + message));
+                        return Mono.just(ResponseEntity.status(status).body(message));
                     }
 
                     return measurementPlaceItemClient.measurementExists(token, measurementPlaceItemDTO.getProjectContract(), measurementPlaceItemDTO.getYearMonth())
@@ -104,15 +99,10 @@ public class MeasurementPlaceItemService {
                     HttpStatus status = (HttpStatus) responseEntity.getStatusCode();
                     String message = responseEntity.getBody();
 
-                    if (status == NOT_FOUND) {
-                        return Mono.just(ResponseEntity.status(NOT_FOUND)
-                                .body("Ação não encontrada: " + action));
-                    } else if (status == FORBIDDEN) {
-                        return Mono.just(ResponseEntity.status(FORBIDDEN)
-                                .body("Sem permissão para realizar essa ação"));
+                    if (status == SERVICE_UNAVAILABLE || status == INTERNAL_SERVER_ERROR) {
+                        return Mono.just(ResponseEntity.status(FAILED_DEPENDENCY).body("Uma dependência falhou."));
                     } else if (status != OK) {
-                        return Mono.just(ResponseEntity.status(INTERNAL_SERVER_ERROR)
-                                .body("Erro ao verificar permissão: " + message));
+                        return Mono.just(ResponseEntity.status(status).body(message));
                     }
 
                     return measurementPlaceItemRepository.findByPlaceNameAndProjectContractAndItemNameAndItemUnitAndYearMonth(
@@ -140,17 +130,11 @@ public class MeasurementPlaceItemService {
                     HttpStatus status = (HttpStatus) responseEntity.getStatusCode();
                     String message = responseEntity.getBody();
 
-                    if (status == NOT_FOUND) {
-                        return Mono.just(ResponseEntity.status(NOT_FOUND)
-                                .body("Ação não encontrada: " + action));
-                    } else if (status == FORBIDDEN) {
-                        return Mono.just(ResponseEntity.status(FORBIDDEN)
-                                .body("Sem permissão para realizar essa ação"));
+                    if (status == SERVICE_UNAVAILABLE || status == INTERNAL_SERVER_ERROR) {
+                        return Mono.just(ResponseEntity.status(FAILED_DEPENDENCY).body("Uma dependência falhou."));
                     } else if (status != OK) {
-                        return Mono.just(ResponseEntity.status(INTERNAL_SERVER_ERROR)
-                                .body("Erro ao verificar permissão: " + message));
+                        return Mono.just(ResponseEntity.status(status).body(message));
                     }
-
                     return measurementPlaceItemRepository.findByPlaceNameAndProjectContractAndItemNameAndItemUnitAndYearMonth(
                                     measurementPlaceItemDTO.getPlaceName(),
                                     measurementPlaceItemDTO.getProjectContract(),

@@ -1,6 +1,9 @@
 package model;
 
 
+import jakarta.validation.constraints.DecimalMin;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
 import lombok.Getter;
 import lombok.Setter;
 import org.springframework.data.annotation.Id;
@@ -34,6 +37,9 @@ public class Project {
     private List<String> userEmail;
 
     public Project() {
+    }
+
+    public Project(@NotBlank(message = "O nome da obra é obrigatório.") @Size(min = 5, message = "O nome da obra deve ter pelo menos 5 caracteres e comecar com SES") String name, @NotBlank(message = "O contrato é obrigatório.") String contract, @DecimalMin(value = "0.0", inclusive = false, message = "O orçamento deve ser maior que zero.") BigDecimal budget) {
     }
 
     @Override

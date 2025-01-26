@@ -33,11 +33,13 @@ public class MeasurementController {
                     content = @Content(schema = @Schema(implementation = MeasurementDTO.class))
             ),
             responses = {
-                    @ApiResponse(responseCode = "201", description = "Medição criada com sucesso"),
-                    @ApiResponse(responseCode = "404", description = "Ação ou contrato não encontrado"),
-                    @ApiResponse(responseCode = "409", description = "Medição já existe para o contrato"),
-                    @ApiResponse(responseCode = "424", description = "Erro ao verificar permissões ou existência do contrato"),
-                    @ApiResponse(responseCode = "500", description = "Erro interno")
+                    @ApiResponse(responseCode = "201", description = "Medição criada com sucesso."),
+                    @ApiResponse(responseCode = "400", description = "Requisição inválida (token ou role inválidos)."),
+                    @ApiResponse(responseCode = "403", description = "Usuário sem permissão para criar a medição."),
+                    @ApiResponse(responseCode = "404", description = "Contrato ou ação não encontrada."),
+                    @ApiResponse(responseCode = "409", description = "Medição já existe para o contrato."),
+                    @ApiResponse(responseCode = "424", description = "Falha em uma dependência (ex.: serviço de contratos)."),
+                    @ApiResponse(responseCode = "500", description = "Erro interno ao processar a criação.")
             }
     )
     @PostMapping("/create")
@@ -51,16 +53,17 @@ public class MeasurementController {
             summary = "Deletar Medição",
             description = "Deleta uma medição existente se o usuário tiver permissão.",
             requestBody = @RequestBody(
-                    description = "Dados da medição a ser deletada",
+                    description = "Dados da medição a ser deletada.",
                     required = true,
                     content = @Content(schema = @Schema(implementation = MeasurementDTO.class))
             ),
             responses = {
-                    @ApiResponse(responseCode = "200", description = "Medição deletada com sucesso"),
-                    @ApiResponse(responseCode = "204", description = "Medição não encontrada"),
-                    @ApiResponse(responseCode = "403", description = "Usuário sem permissão para a ação"),
-                    @ApiResponse(responseCode = "424", description = "Erro ao verificar permissões"),
-                    @ApiResponse(responseCode = "500", description = "Erro interno ao processar exclusão")
+                    @ApiResponse(responseCode = "200", description = "Medição deletada com sucesso."),
+                    @ApiResponse(responseCode = "204", description = "Medição não encontrada."),
+                    @ApiResponse(responseCode = "400", description = "Requisição inválida (token ou role inválidos)."),
+                    @ApiResponse(responseCode = "403", description = "Usuário sem permissão para deletar a medição."),
+                    @ApiResponse(responseCode = "424", description = "Falha em uma dependência (ex.: serviço de contratos)."),
+                    @ApiResponse(responseCode = "500", description = "Erro interno ao processar a exclusão.")
             }
     )
     @PostMapping("/delete")
@@ -74,16 +77,18 @@ public class MeasurementController {
             summary = "Verificar Existência de Medição",
             description = "Verifica se uma medição existe com base no contrato e no ano/mês fornecidos.",
             requestBody = @RequestBody(
-                    description = "Dados da medição para verificação",
+                    description = "Dados da medição para verificação.",
                     required = true,
                     content = @Content(schema = @Schema(implementation = MeasurementRequestDTO.class))
             ),
             responses = {
-                    @ApiResponse(responseCode = "200", description = "Medição encontrada"),
-                    @ApiResponse(responseCode = "204", description = "Medição não encontrada"),
-                    @ApiResponse(responseCode = "403", description = "Usuário sem permissão para a ação"),
-                    @ApiResponse(responseCode = "424", description = "Erro ao verificar permissões ou contrato"),
-                    @ApiResponse(responseCode = "500", description = "Erro interno ao processar verificação")
+                    @ApiResponse(responseCode = "200", description = "Medição encontrada."),
+                    @ApiResponse(responseCode = "204", description = "Medição não encontrada."),
+                    @ApiResponse(responseCode = "400", description = "Requisição inválida (token ou role inválidos)."),
+                    @ApiResponse(responseCode = "403", description = "Usuário sem permissão para verificar a medição."),
+                    @ApiResponse(responseCode = "404", description = "Contrato ou ação não encontrada."),
+                    @ApiResponse(responseCode = "424", description = "Falha em uma dependência (ex.: serviço de contratos)."),
+                    @ApiResponse(responseCode = "500", description = "Erro interno ao processar a verificação.")
             }
     )
     @PostMapping("/exist")

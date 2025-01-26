@@ -24,7 +24,7 @@ public class TechnicianRoleStrategy implements RoleStrategy {
 
     @Override
     public boolean createItem() {
-        return true;
+        return false;
     }
 
     @Override

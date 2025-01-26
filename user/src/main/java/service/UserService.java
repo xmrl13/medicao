@@ -166,6 +166,7 @@ public class UserService {
     }
 
     public Mono<ResponseEntity<String>> hasPermission(String token, String action) {
+
         if (token.startsWith("Bearer ")) {
             token = token.replace("Bearer ", "");
         }
@@ -177,7 +178,7 @@ public class UserService {
                     try {
                         role = Role.valueOf(roleName);
                     } catch (IllegalArgumentException e) {
-                        return Mono.just(ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                        return Mono.just(ResponseEntity.status(HttpStatus.NOT_FOUND)
                                 .body("Role '" + roleName + "' não é válida"));
                     }
 
@@ -192,14 +193,14 @@ public class UserService {
                         }
                     } catch (NoSuchMethodException e) {
                         return Mono.just(ResponseEntity.status(HttpStatus.NOT_FOUND)
-                                .body("A ação '" + action + "' não existe para a role " + roleName));
+                                .body("A ação '" + action + "' não existe"));
                     } catch (Exception e) {
 
                         return Mono.just(ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                                 .body("Erro ao verificar permissão: " + e.getMessage()));
                     }
                 })
-                .switchIfEmpty(Mono.just(ResponseEntity.status(HttpStatus.FORBIDDEN)
+                .switchIfEmpty(Mono.just(ResponseEntity.status(HttpStatus.BAD_REQUEST)
                         .body("Sem permissão: role não encontrada")));
     }
 
