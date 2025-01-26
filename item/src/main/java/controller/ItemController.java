@@ -31,9 +31,12 @@ public class ItemController {
     )
     @ApiResponses(value = {
             @ApiResponse(responseCode = "201", description = "Item criado com sucesso."),
-            @ApiResponse(responseCode = "204", description = "Item não encontrado"),
+            @ApiResponse(responseCode = "409", description = "O item já existe."),
+            @ApiResponse(responseCode = "400", description = "Requisição inválida (token, role, etc.)."),
             @ApiResponse(responseCode = "403", description = "Ação não autorizada. Verifique o token."),
-            @ApiResponse(responseCode = "424", description = "Erro interno associado a uma dependência.")
+            @ApiResponse(responseCode = "404", description = "Ação não encontrada."),
+            @ApiResponse(responseCode = "424", description = "Falha em um serviço dependente."),
+            @ApiResponse(responseCode = "500", description = "Erro interno no serviço de itens.")
     })
     @PostMapping("/create/one")
     public Mono<ResponseEntity<String>> createOne(
@@ -57,10 +60,12 @@ public class ItemController {
     )
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Item deletado com sucesso."),
-            @ApiResponse(responseCode = "204", description = "Item não encontrado"),
+            @ApiResponse(responseCode = "204", description = "Item não encontrado."),
+            @ApiResponse(responseCode = "400", description = "Requisição inválida (token, role, etc.)."),
             @ApiResponse(responseCode = "403", description = "Ação não autorizada. Verifique o token."),
-            @ApiResponse(responseCode = "424", description = "Erro interno associado a uma dependência."),
-            @ApiResponse(responseCode = "500", description = "Erro interno .")
+            @ApiResponse(responseCode = "404", description = "Ação não encontrada."),
+            @ApiResponse(responseCode = "424", description = "Falha em um serviço dependente."),
+            @ApiResponse(responseCode = "500", description = "Erro interno no serviço de itens.")
     })
     @PostMapping("/delete")
     public Mono<ResponseEntity<String>> deleteItem(
@@ -84,10 +89,12 @@ public class ItemController {
     )
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Item encontrado."),
-            @ApiResponse(responseCode = "204", description = "Item não encontrado"),
+            @ApiResponse(responseCode = "204", description = "Item não encontrado."),
+            @ApiResponse(responseCode = "400", description = "Requisição inválida (token, role, etc.)."),
             @ApiResponse(responseCode = "403", description = "Ação não autorizada. Verifique o token."),
-            @ApiResponse(responseCode = "424", description = "Erro interno associado a uma dependência."),
-            @ApiResponse(responseCode = "500", description = "Erro interno .")
+            @ApiResponse(responseCode = "404", description = "Ação não encontrada."),
+            @ApiResponse(responseCode = "424", description = "Falha em um serviço dependente."),
+            @ApiResponse(responseCode = "500", description = "Erro interno no serviço de itens.")
     })
     @PostMapping("/exist")
     public Mono<ResponseEntity<String>> existItem(

@@ -4,7 +4,6 @@ import client.ProjectClient;
 import dto.ProjectDTO;
 import dto.ProjectRequestDTO;
 import model.Project;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
@@ -21,13 +20,12 @@ import static org.springframework.http.HttpStatus.*;
 public class ProjectService {
 
     private final ProjectRepository projectRepository;
+    private final ProjectClient projectClient;
 
-    public ProjectService(ProjectRepository projectRepository) {
+    public ProjectService(ProjectRepository projectRepository, ProjectClient projectClient) {
         this.projectRepository = projectRepository;
+        this.projectClient = projectClient;
     }
-
-    @Autowired
-    private ProjectClient projectClient;
 
     public Mono<ResponseEntity<String>> createProject(ProjectDTO projectDTO, String token) {
         String action = "createProject";
@@ -37,16 +35,10 @@ public class ProjectService {
                     HttpStatus status = (HttpStatus) responseEntity.getStatusCode();
                     String message = responseEntity.getBody();
 
-                    if (status == NOT_FOUND) {
-                        return Mono.just(ResponseEntity.status(NOT_FOUND)
-                                .body("Ação não encontrada: " + action));
-                    } else if (status == FORBIDDEN) {
-                        return Mono.just(ResponseEntity.status(FORBIDDEN)
-                                .body("Sem permissão para realizar essa ação"));
+                    if (status == SERVICE_UNAVAILABLE || status == INTERNAL_SERVER_ERROR) {
+                        return Mono.just(ResponseEntity.status(FAILED_DEPENDENCY).body("Uma dependência falhou."));
                     } else if (status != OK) {
-
-                        return Mono.just(ResponseEntity.status(INTERNAL_SERVER_ERROR)
-                                .body("Erro ao verificar permissão: " + message));
+                        return Mono.just(ResponseEntity.status(status).body(message));
                     }
 
                     return projectRepository.findByNameAndContract(projectDTO.getName(), projectDTO.getContract())
@@ -76,17 +68,11 @@ public class ProjectService {
                     HttpStatus status = (HttpStatus) responseEntity.getStatusCode();
                     String message = responseEntity.getBody();
 
-                    if (status == NOT_FOUND) {
-                        return Mono.just(ResponseEntity.status(NOT_FOUND)
-                                .body("Ação não encontrada: " + action));
-                    } else if (status == FORBIDDEN) {
-                        return Mono.just(ResponseEntity.status(FORBIDDEN)
-                                .body("Sem permissão para realizar essa ação"));
+                    if (status == SERVICE_UNAVAILABLE || status == INTERNAL_SERVER_ERROR) {
+                        return Mono.just(ResponseEntity.status(FAILED_DEPENDENCY).body("Uma dependência falhou."));
                     } else if (status != OK) {
-                        return Mono.just(ResponseEntity.status(INTERNAL_SERVER_ERROR)
-                                .body("Erro ao verificar permissão: " + message));
+                        return Mono.just(ResponseEntity.status(status).body(message));
                     }
-
                     return projectRepository.findByContract(projectDTO.getContract())
                             .flatMap(existingProject ->
                                     projectRepository.delete((Project) existingProject)
@@ -107,21 +93,15 @@ public class ProjectService {
                     HttpStatusCode status = responseEntity.getStatusCode();
                     String message = responseEntity.getBody();
 
-                    if (status == HttpStatus.NOT_FOUND) {
-                        return Mono.just(ResponseEntity.status(HttpStatus.NOT_FOUND)
-                                .body("Ação não encontrada: " + action));
-                    } else if (status == HttpStatus.FORBIDDEN) {
-                        return Mono.just(ResponseEntity.status(HttpStatus.FORBIDDEN)
-                                .body("Sem permissão para realizar essa ação"));
-                    } else if (status != HttpStatus.OK) {
-                        return Mono.just(ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                                .body("Erro ao verificar permissão: " + message));
+                    if (status == SERVICE_UNAVAILABLE || status == INTERNAL_SERVER_ERROR) {
+                        return Mono.just(ResponseEntity.status(FAILED_DEPENDENCY).body("Uma dependência falhou."));
+                    } else if (status != OK) {
+                        return Mono.just(ResponseEntity.status(status).body(message));
                     }
 
                     return projectRepository.findByContract(projectRequestDTO.getContract())
                             .flatMap(existingProject -> {
 
-                                // Verifica se o email já está no projeto
                                 if (existingProject.getUserEmail() != null &&
                                         existingProject.getUserEmail().contains(projectRequestDTO.getUserEmail())) {
                                     return Mono.just(ResponseEntity.status(HttpStatus.BAD_REQUEST)
@@ -158,15 +138,10 @@ public class ProjectService {
                     HttpStatus status = (HttpStatus) responseEntity.getStatusCode();
                     String message = responseEntity.getBody();
 
-                    if (status == NOT_FOUND) {
-                        return Mono.just(ResponseEntity.status(NOT_FOUND)
-                                .body("Ação não encontrada: " + action));
-                    } else if (status == FORBIDDEN) {
-                        return Mono.just(ResponseEntity.status(FORBIDDEN)
-                                .body("Sem permissão para realizar essa ação"));
+                    if (status == SERVICE_UNAVAILABLE || status == INTERNAL_SERVER_ERROR) {
+                        return Mono.just(ResponseEntity.status(FAILED_DEPENDENCY).body("Uma dependência falhou."));
                     } else if (status != OK) {
-                        return Mono.just(ResponseEntity.status(INTERNAL_SERVER_ERROR)
-                                .body("Erro ao verificar permissão: " + message));
+                        return Mono.just(ResponseEntity.status(status).body(message));
                     }
 
                     return projectRepository.findByContract(projectRequestDTO.getContract())
@@ -181,7 +156,7 @@ public class ProjectService {
                         .body("Erro ao verificar a existência da obra: " + error.getMessage())));
     }
 
-    public Mono<ResponseEntity<List<String>>> getContractsByUserEmail(String userEmail, String token) {
+    public Mono<ResponseEntity<?>> getContractsByUserEmail(String userEmail, String token) {
 
         String action = "getProject";
 
@@ -190,18 +165,11 @@ public class ProjectService {
                     HttpStatus status = (HttpStatus) responseEntity.getStatusCode();
                     String message = responseEntity.getBody();
 
-                    if (status == NOT_FOUND) {
-                        return Mono.just(ResponseEntity.status(NOT_FOUND)
-                                .body(List.of("Ação não encontrada: " + action)));
-                    } else if (status == FORBIDDEN) {
-                        return Mono.just(ResponseEntity.status(FORBIDDEN)
-                                .body(List.of("Sem permissão para realizar essa ação")));
+                    if (status == SERVICE_UNAVAILABLE || status == INTERNAL_SERVER_ERROR) {
+                        return Mono.just(ResponseEntity.status(FAILED_DEPENDENCY).body("Uma dependência falhou."));
                     } else if (status != OK) {
-                        return Mono.just(ResponseEntity.status(INTERNAL_SERVER_ERROR)
-                                .body(List.of("Erro ao verificar permissão: " + message)));
+                        return Mono.just(ResponseEntity.status(status).body(message));
                     }
-
-                    System.out.println(userEmail);
 
                     return projectRepository.findByUserEmail(userEmail)
                             .map(Project::getContract)

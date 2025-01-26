@@ -4,7 +4,6 @@ import client.ItemClient;
 import dto.ItemDTO;
 import dto.ItemRequestDTO;
 import model.Item;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -32,18 +31,15 @@ public class ItemService {
         return itemClient.hasPermission(token, action)
                 .flatMap(responseEntity -> {
                     HttpStatus status = (HttpStatus) responseEntity.getStatusCode();
+
                     String message = responseEntity.getBody();
 
-                    if (status == NOT_FOUND) {
-                        return Mono.just(ResponseEntity.status(NOT_FOUND)
-                                .body("Ação não encontrada: " + action));
-                    } else if (status == FORBIDDEN) {
-                        return Mono.just(ResponseEntity.status(FORBIDDEN)
-                                .body("Sem permissão para realizar essa ação"));
+                    if (status == SERVICE_UNAVAILABLE || status == INTERNAL_SERVER_ERROR) {
+                        return Mono.just(ResponseEntity.status(FAILED_DEPENDENCY).body("Uma dependência falhou."));
                     } else if (status != OK) {
-                        return Mono.just(ResponseEntity.status(FAILED_DEPENDENCY)
-                                .body("Erro ao verificar permissão: " + message));
+                        return Mono.just(ResponseEntity.status(status).body(message));
                     }
+
 
                     return itemRepository.findByNameAndUnit(itemDTO.getName(), itemDTO.getUnit())
                             .flatMap(existingItem ->
@@ -61,7 +57,8 @@ public class ItemService {
                                                         .body("Item criado com sucesso"));
                                     })
                             );
-                });
+                }).onErrorResume(error -> Mono.just(ResponseEntity.status(INTERNAL_SERVER_ERROR)
+                        .body("Erro ao processar a exclusão do item: " + error.getMessage())));
     }
 
     public Mono<ResponseEntity<String>> deleteItem(ItemDTO itemDTO, String token) {
@@ -72,15 +69,10 @@ public class ItemService {
                     HttpStatus status = (HttpStatus) responseEntity.getStatusCode();
                     String message = responseEntity.getBody();
 
-                    if (status == NOT_FOUND) {
-                        return Mono.just(ResponseEntity.status(NOT_FOUND)
-                                .body("Ação não encontrada: " + action));
-                    } else if (status == FORBIDDEN) {
-                        return Mono.just(ResponseEntity.status(FORBIDDEN)
-                                .body("Sem permissão para realizar essa ação"));
+                    if (status == SERVICE_UNAVAILABLE || status == INTERNAL_SERVER_ERROR) {
+                        return Mono.just(ResponseEntity.status(FAILED_DEPENDENCY).body("Uma dependência falhou."));
                     } else if (status != OK) {
-                        return Mono.just(ResponseEntity.status(FAILED_DEPENDENCY)
-                                .body("Erro ao verificar permissão: " + message));
+                        return Mono.just(ResponseEntity.status(status).body(message));
                     }
 
                     return itemRepository.findByNameAndUnit(itemDTO.getName(), itemDTO.getUnit())
@@ -103,15 +95,10 @@ public class ItemService {
                     HttpStatus status = (HttpStatus) responseEntity.getStatusCode();
                     String message = responseEntity.getBody();
 
-                    if (status == NOT_FOUND) {
-                        return Mono.just(ResponseEntity.status(NOT_FOUND)
-                                .body("Ação não encontrada: " + action));
-                    } else if (status == FORBIDDEN) {
-                        return Mono.just(ResponseEntity.status(FORBIDDEN)
-                                .body("Sem permissão para realizar essa ação"));
+                    if (status == SERVICE_UNAVAILABLE || status == INTERNAL_SERVER_ERROR) {
+                        return Mono.just(ResponseEntity.status(FAILED_DEPENDENCY).body("Uma dependência falhou."));
                     } else if (status != OK) {
-                        return Mono.just(ResponseEntity.status(FAILED_DEPENDENCY)
-                                .body("Erro ao verificar permissão: " + message));
+                        return Mono.just(ResponseEntity.status(status).body(message));
                     }
 
                     return itemRepository.findByNameAndUnit(itemRequestDTO.getName(), itemRequestDTO.getUnit())

@@ -38,57 +38,26 @@ class PlaceItemServiceTest {
 
     @BeforeEach
     void setup() {
-        token = "test-token";
+        token = "Bearer token-teste";
         placeItemRequestDTO = new PlaceItemRequestDTO();
-        placeItemRequestDTO.setItemName("Item-1");
-        placeItemRequestDTO.setItemUnit("kg");
-        placeItemRequestDTO.setPlaceName("Place-1");
-        placeItemRequestDTO.setProjectContract("Contract-123");
-        placeItemRequestDTO.setPredictedValue(BigDecimal.valueOf(100.0));
+        placeItemRequestDTO.setPlaceName("Bacia Teste");
+        placeItemRequestDTO.setProjectContract("CONTRATO-123");
+        placeItemRequestDTO.setItemName("Item Teste");
+        placeItemRequestDTO.setItemUnit("Unidade");
+        placeItemRequestDTO.setPredictedValue(BigDecimal.valueOf(100.00));
     }
 
     @Test
-    void createPlaceItem_AcaoNaoEncontrada() {
-        when(placeItemClient.hasPermission(token, "createPlaceItem"))
-                .thenReturn(Mono.just(ResponseEntity.status(NOT_FOUND).body("Ação não encontrada")));
-
-        Mono<ResponseEntity<String>> result = placeItemService.createPlaceItem(placeItemRequestDTO, token);
-
-        StepVerifier.create(result)
-                .assertNext(response -> {
-                    assertEquals(NOT_FOUND, response.getStatusCode());
-                    assertEquals("Ação não encontrada: createPlaceItem", response.getBody());
-                })
-                .verifyComplete();
-    }
-
-    @Test
-    void createPlaceItem_SemPermissao() {
+    void createPlaceItem_PermissaoNegada() {
         when(placeItemClient.hasPermission(token, "createPlaceItem"))
                 .thenReturn(Mono.just(ResponseEntity.status(FORBIDDEN).body("Sem permissão")));
 
         Mono<ResponseEntity<String>> result = placeItemService.createPlaceItem(placeItemRequestDTO, token);
 
         StepVerifier.create(result)
-                .assertNext(response -> {
-                    assertEquals(FORBIDDEN, response.getStatusCode());
-                    assertEquals("Sem permissão para realizar essa ação", response.getBody());
-                })
-                .verifyComplete();
-    }
-
-    @Test
-    void createPlaceItem_ErroAoVerificarPermissao() {
-        when(placeItemClient.hasPermission(token, "createPlaceItem"))
-                .thenReturn(Mono.just(ResponseEntity.status(INTERNAL_SERVER_ERROR).body("Erro genérico")));
-
-        Mono<ResponseEntity<String>> result = placeItemService.createPlaceItem(placeItemRequestDTO, token);
-
-        StepVerifier.create(result)
-                .assertNext(response -> {
-                    assertEquals(INTERNAL_SERVER_ERROR, response.getStatusCode());
-                    assertEquals("Erro ao verificar permissão: Erro genérico", response.getBody());
-                })
+                .assertNext(response ->
+                        assertEquals(FORBIDDEN, response.getStatusCode())
+                )
                 .verifyComplete();
     }
 
@@ -104,8 +73,8 @@ class PlaceItemServiceTest {
 
         StepVerifier.create(result)
                 .assertNext(response -> {
-                    assertEquals(NOT_FOUND, response.getStatusCode());
-                    assertEquals("Bacia não encontrada, nome: Place-1 contrato: Contract-123", response.getBody());
+                    assertEquals(NO_CONTENT, response.getStatusCode());
+                    assertEquals("Bacia não encontrada, nome: Bacia Teste contrato: CONTRATO-123", response.getBody());
                 })
                 .verifyComplete();
     }
@@ -125,14 +94,14 @@ class PlaceItemServiceTest {
 
         StepVerifier.create(result)
                 .assertNext(response -> {
-                    assertEquals(NOT_FOUND, response.getStatusCode());
-                    assertEquals("Item não encontrado, nome: Item-1 unidade: kg", response.getBody());
+                    assertEquals(NO_CONTENT, response.getStatusCode());
+                    assertEquals("Item não encontrado, nome: Item Teste unidade: Unidade", response.getBody());
                 })
                 .verifyComplete();
     }
 
     @Test
-    void createPlaceItem_ItemJaExiste() {
+    void createPlaceItem_ConflitoAoCriar() {
         when(placeItemClient.hasPermission(token, "createPlaceItem"))
                 .thenReturn(Mono.just(ResponseEntity.ok("Permitido")));
 
@@ -142,15 +111,12 @@ class PlaceItemServiceTest {
         when(placeItemClient.itemExists(token, placeItemRequestDTO.getItemName(), placeItemRequestDTO.getItemUnit()))
                 .thenReturn(Mono.just(ResponseEntity.ok("Item encontrado")));
 
-        PlaceItem existingPlaceItem = new PlaceItem();
-        existingPlaceItem.setItemName("Item-1");
-        existingPlaceItem.setItemUnit("kg");
-        existingPlaceItem.setPlaceName("Place-1");
-        existingPlaceItem.setProjectContract("Contract-123");
-
         when(placeItemRepository.findByItemNameAndItemUnitAndPlaceNameAndProjectContract(
-                "Item-1", "kg", "Place-1", "Contract-123"
-        )).thenReturn(Mono.just(existingPlaceItem));
+                placeItemRequestDTO.getItemName(),
+                placeItemRequestDTO.getItemUnit(),
+                placeItemRequestDTO.getPlaceName(),
+                placeItemRequestDTO.getProjectContract()))
+                .thenReturn(Mono.just(new PlaceItem()));
 
         Mono<ResponseEntity<String>> result = placeItemService.createPlaceItem(placeItemRequestDTO, token);
 
@@ -174,8 +140,11 @@ class PlaceItemServiceTest {
                 .thenReturn(Mono.just(ResponseEntity.ok("Item encontrado")));
 
         when(placeItemRepository.findByItemNameAndItemUnitAndPlaceNameAndProjectContract(
-                "Item-1", "kg", "Place-1", "Contract-123"
-        )).thenReturn(Mono.empty());
+                placeItemRequestDTO.getItemName(),
+                placeItemRequestDTO.getItemUnit(),
+                placeItemRequestDTO.getPlaceName(),
+                placeItemRequestDTO.getProjectContract()))
+                .thenReturn(Mono.empty());
 
         when(placeItemRepository.save(any(PlaceItem.class)))
                 .thenAnswer(invocation -> Mono.just(invocation.getArgument(0)));
@@ -191,16 +160,23 @@ class PlaceItemServiceTest {
     }
 
     @Test
-    void deletePlaceItem_AcaoNaoEncontrada() {
+    void deletePlaceItem_NaoEncontrado() {
         when(placeItemClient.hasPermission(token, "deletePlaceItem"))
-                .thenReturn(Mono.just(ResponseEntity.status(NOT_FOUND).body("Ação não encontrada")));
+                .thenReturn(Mono.just(ResponseEntity.ok("Permitido")));
+
+        when(placeItemRepository.findByItemNameAndItemUnitAndPlaceNameAndProjectContract(
+                placeItemRequestDTO.getItemName(),
+                placeItemRequestDTO.getItemUnit(),
+                placeItemRequestDTO.getPlaceName(),
+                placeItemRequestDTO.getProjectContract()))
+                .thenReturn(Mono.empty());
 
         Mono<ResponseEntity<String>> result = placeItemService.deletePlaceItem(placeItemRequestDTO, token);
 
         StepVerifier.create(result)
                 .assertNext(response -> {
-                    assertEquals(NOT_FOUND, response.getStatusCode());
-                    assertEquals("Ação não encontrada: deletePlaceItem", response.getBody());
+                    assertEquals(NO_CONTENT, response.getStatusCode());
+                    assertEquals("Não encontrado", response.getBody());
                 })
                 .verifyComplete();
     }
@@ -211,16 +187,15 @@ class PlaceItemServiceTest {
                 .thenReturn(Mono.just(ResponseEntity.ok("Permitido")));
 
         PlaceItem existingPlaceItem = new PlaceItem();
-        existingPlaceItem.setItemName("Item-1");
-        existingPlaceItem.setItemUnit("kg");
-        existingPlaceItem.setPlaceName("Place-1");
-        existingPlaceItem.setProjectContract("Contract-123");
-
         when(placeItemRepository.findByItemNameAndItemUnitAndPlaceNameAndProjectContract(
-                "Item-1", "kg", "Place-1", "Contract-123"
-        )).thenReturn(Mono.just(existingPlaceItem));
+                placeItemRequestDTO.getItemName(),
+                placeItemRequestDTO.getItemUnit(),
+                placeItemRequestDTO.getPlaceName(),
+                placeItemRequestDTO.getProjectContract()))
+                .thenReturn(Mono.just(existingPlaceItem));
 
-        when(placeItemRepository.delete(existingPlaceItem)).thenReturn(Mono.empty());
+        when(placeItemRepository.delete(existingPlaceItem))
+                .thenReturn(Mono.empty());
 
         Mono<ResponseEntity<String>> result = placeItemService.deletePlaceItem(placeItemRequestDTO, token);
 

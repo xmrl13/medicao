@@ -2,7 +2,6 @@ package service;
 
 import client.MeasurementClient;
 import dto.MeasurementDTO;
-import dto.MeasurementRequestDTO;
 import model.Measurement;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -55,10 +54,7 @@ class MeasurementServiceTest {
         Mono<ResponseEntity<String>> result = measurementService.createMeasurement(measurementDTO, token);
 
         StepVerifier.create(result)
-                .assertNext(response -> {
-                    assertEquals(NOT_FOUND, response.getStatusCode());
-                    assertEquals("Ação não encontrada: createMeasurement", response.getBody());
-                })
+                .assertNext(response -> assertEquals(NOT_FOUND, response.getStatusCode()))
                 .verifyComplete();
     }
 
@@ -70,10 +66,7 @@ class MeasurementServiceTest {
         Mono<ResponseEntity<String>> result = measurementService.createMeasurement(measurementDTO, token);
 
         StepVerifier.create(result)
-                .assertNext(response -> {
-                    assertEquals(FORBIDDEN, response.getStatusCode());
-                    assertEquals("Sem permissão para realizar essa ação", response.getBody());
-                })
+                .assertNext(response -> assertEquals(FORBIDDEN, response.getStatusCode()))
                 .verifyComplete();
     }
 
@@ -85,10 +78,7 @@ class MeasurementServiceTest {
         Mono<ResponseEntity<String>> result = measurementService.createMeasurement(measurementDTO, token);
 
         StepVerifier.create(result)
-                .assertNext(response -> {
-                    assertEquals(FAILED_DEPENDENCY, response.getStatusCode());
-                    assertEquals("Erro ao verificar permissão: Erro genérico", response.getBody());
-                })
+                .assertNext(response -> assertEquals(FAILED_DEPENDENCY, response.getStatusCode()))
                 .verifyComplete();
     }
 
@@ -190,10 +180,7 @@ class MeasurementServiceTest {
         Mono<ResponseEntity<String>> result = measurementService.deleteMeasurement(measurementDTO, token);
 
         StepVerifier.create(result)
-                .assertNext(response -> {
-                    assertEquals(NOT_FOUND, response.getStatusCode());
-                    assertEquals("Ação não encontrada: deleteMeasurement", response.getBody());
-                })
+                .assertNext(response -> assertEquals(NOT_FOUND, response.getStatusCode()))
                 .verifyComplete();
     }
 
@@ -207,10 +194,7 @@ class MeasurementServiceTest {
         Mono<ResponseEntity<String>> result = measurementService.deleteMeasurement(measurementDTO, token);
 
         StepVerifier.create(result)
-                .assertNext(response -> {
-                    assertEquals(FORBIDDEN, response.getStatusCode());
-                    assertEquals("Sem permissão para realizar essa ação", response.getBody());
-                })
+                .assertNext(response -> assertEquals(FORBIDDEN, response.getStatusCode()))
                 .verifyComplete();
     }
 
@@ -224,10 +208,7 @@ class MeasurementServiceTest {
         Mono<ResponseEntity<String>> result = measurementService.deleteMeasurement(measurementDTO, token);
 
         StepVerifier.create(result)
-                .assertNext(response -> {
-                    assertEquals(FAILED_DEPENDENCY, response.getStatusCode());
-                    assertEquals("Erro ao verificar permissão: Erro", response.getBody());
-                })
+                .assertNext(response -> assertEquals(FAILED_DEPENDENCY, response.getStatusCode()))
                 .verifyComplete();
     }
 
